@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tejvix Salon — Muzaffarpur | Token & Queue Booking</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #170F1D;
+    --bg-panel: #241531;
+    --bg-panel-2: #2E1B3D;
+    --line: #3A2749;
+    --gold: #C9A227;
+    --gold-soft: #E8C766;
+    --text: #F4EEE6;
+    --text-dim: #B9A9C4;
+    --success: #5EAE7C;
+    --danger: #D3695F;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    letter-spacing:-0.01em;
+  }
+  a{color:inherit; text-decoration:none;}
+  img,svg{display:block; max-width:100%;}
+  .wrap{max-width:1100px; margin:0 auto; padding:0 24px;}
+  :focus-visible{outline:2px solid var(--gold-soft); outline-offset:3px;}
+
+  /* NAV */
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(23,15,29,0.9);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  nav.wrap{
+    display:flex; align-items:center; justify-content:space-between;
+    height:72px;
+  }
+  .logo{display:flex; align-items:center; gap:10px; font-family:'Fraunces',serif; font-size:1.35rem; font-weight:600; color:var(--text);}
+  .logo span{color:var(--gold-soft);}
+  .navlinks{display:flex; gap:32px; font-size:0.95rem; color:var(--text-dim);}
+  .navlinks a:hover{color:var(--text);}
+  .navcta{
+    background:var(--gold); color:#231407; padding:10px 20px; border-radius:8px;
+    font-weight:600; font-size:0.9rem;
+  }
+  .navcta:hover{background:var(--gold-soft);}
+  @media (max-width:760px){ .navlinks{display:none;} }
+
+  /* HERO */
+  .hero{padding:72px 0 56px;}
+  .hero-grid{display:grid; grid-template-columns:1.05fr 0.95fr; gap:56px; align-items:center;}
+  @media (max-width:900px){ .hero-grid{grid-template-columns:1fr;} }
+  .eyebrow{color:var(--gold-soft); font-size:0.9rem; margin-bottom:16px;}
+  .hero h1{font-size:clamp(2.2rem, 4vw, 3.2rem); line-height:1.12; margin-bottom:20px;}
+  .hero p.lede{color:var(--text-dim); font-size:1.1rem; max-width:46ch; margin-bottom:28px;}
+  .hero-actions{display:flex; gap:14px; flex-wrap:wrap;}
+  .btn-primary{
+    background:var(--gold); color:#231407; padding:14px 26px; border-radius:9px;
+    font-weight:600; font-size:1rem; border:none; cursor:pointer;
+  }
+  .btn-primary:hover{background:var(--gold-soft);}
+  .btn-ghost{
+    border:1px solid var(--line); padding:14px 26px; border-radius:9px;
+    font-weight:600; font-size:1rem; color:var(--text);
+  }
+  .btn-ghost:hover{border-color:var(--gold-soft);}
+
+  /* Live token board mockup - the hero visual */
+  .board{
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:16px;
+    padding:24px; box-shadow:0 30px 60px -30px rgba(0,0,0,0.6);
+  }
+  .board-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;}
+  .board-head .name{font-family:'Fraunces',serif; font-size:1.05rem;}
+  .live-dot{display:inline-flex; align-items:center; gap:6px; font-size:0.8rem; color:var(--success);}
+  .live-dot::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--success); box-shadow:0 0 0 3px rgba(94,174,122,0.2);}
+  .now-serving{
+    background:linear-gradient(135deg, var(--bg-panel-2), var(--bg-panel));
+    border:1px solid var(--line); border-radius:12px; padding:22px; text-align:center; margin-bottom:16px;
+  }
+  .now-serving .label{font-size:0.8rem; color:var(--text-dim); margin-bottom:6px;}
+  .now-serving .tok{font-family:'Fraunces',serif; font-size:2.6rem; color:var(--gold-soft);}
+  .queue-list{display:flex; flex-direction:column; gap:8px;}
+  .qrow{
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:10px 14px; font-size:0.9rem;
+  }
+  .qrow .tok-mini{font-weight:600; color:var(--gold-soft); min-width:38px;}
+  .qrow .wait{color:var(--text-dim); font-size:0.8rem;}
+
+  /* STEPS */
+  section{padding:64px 0;}
+  .section-head{max-width:60ch; margin-bottom:44px;}
+  .section-head h2{font-size:clamp(1.6rem,3vw,2.1rem);}
+  .section-head p{color:var(--text-dim); margin-top:10px;}
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:24px;}
+  @media (max-width:800px){ .steps{grid-template-columns:1fr;} }
+  .step{background:var(--bg-panel); border:1px solid var(--line); border-radius:14px; padding:26px;}
+  .step .num{font-family:'Fraunces',serif; color:var(--gold-soft); font-size:1.4rem; margin-bottom:10px;}
+  .step h3{font-size:1.05rem; margin-bottom:8px;}
+  .step p{color:var(--text-dim); font-size:0.92rem;}
+
+  /* BOOK FORM */
+  .book-grid{display:grid; grid-template-columns:1fr 1fr; gap:44px;}
+  @media (max-width:900px){ .book-grid{grid-template-columns:1fr;} }
+  form{
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:16px; padding:30px;
+    display:flex; flex-direction:column; gap:16px;
+  }
+  label{font-size:0.85rem; color:var(--text-dim); margin-bottom:6px; display:block;}
+  input, select{
+    width:100%; background:var(--bg); border:1px solid var(--line); border-radius:8px;
+    padding:12px 14px; color:var(--text); font-size:0.95rem; font-family:'Inter',sans-serif;
+  }
+  input:focus, select:focus{border-color:var(--gold-soft);}
+  .field{display:flex; flex-direction:column;}
+  #bookMsg{font-size:0.9rem; padding:10px 0; min-height:22px;}
+  #bookMsg.ok{color:var(--success);}
+  #bookMsg.err{color:var(--danger);}
+  .token-result{
+    background:var(--bg-panel-2); border:1px solid var(--gold); border-radius:14px; padding:24px; text-align:center; display:none;
+  }
+  .token-result.show{display:block;}
+  .token-result .tok{font-family:'Fraunces',serif; font-size:2.8rem; color:var(--gold-soft); margin:8px 0;}
+  .token-result .sub{color:var(--text-dim); font-size:0.9rem;}
+
+  /* SERVICES */
+  .services{display:grid; grid-template-columns:repeat(2,1fr); gap:14px;}
+  @media (max-width:700px){ .services{grid-template-columns:1fr;} }
+  .svc{
+    display:flex; justify-content:space-between; align-items:baseline;
+    border-bottom:1px solid var(--line); padding:14px 4px; font-size:0.98rem;
+  }
+  .svc .price{color:var(--gold-soft); font-weight:600;}
+
+  /* CONTACT / FOOTER */
+  footer{border-top:1px solid var(--line); padding:44px 0 32px;}
+  .foot-grid{display:flex; justify-content:space-between; flex-wrap:wrap; gap:20px;}
+  .foot-grid .logo{margin-bottom:8px;}
+  .foot-grid p{color:var(--text-dim); font-size:0.9rem; max-width:40ch;}
+  .foot-right{text-align:right; font-size:0.9rem; color:var(--text-dim);}
+  @media (max-width:600px){ .foot-right{text-align:left;} }
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--bg-panel-2); border:1px solid var(--gold); color:var(--text);
+    padding:12px 20px; border-radius:10px; font-size:0.9rem; opacity:0; pointer-events:none;
+    transition:all 0.25s ease; z-index:100;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="wrap">
+    <div class="logo">Tejvix<span>.</span></div>
+    <div class="navlinks">
+      <a href="#book">Get a Token</a>
+      <a href="#queue">Live Queue</a>
+      <a href="#services">Services</a>
+      <a href="#contact">Contact</a>
+    </div>
+    <a href="#book" class="navcta">Get a Token</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="eyebrow">Muzaffarpur's own salon</div>
+        <h1>No more standing in line.</h1>
+        <p class="lede">Book your token at Tejvix, get an SMS update when your turn is close, and walk in only when it's actually time for your chair.</p>
+        <div class="hero-actions">
+          <a href="#book" class="btn-primary">Get Your Token</a>
+          <a href="#queue" class="btn-ghost">See Live Queue</a>
+        </div>
+      </div>
+
+      <div class="board" id="heroBoard">
+        <div class="board-head">
+          <span class="name">Tejvix — Today</span>
+          <span class="live-dot">Live</span>
+        </div>
+        <div class="now-serving">
+          <div class="label">Now serving</div>
+          <div class="tok" id="heroNowServing">—</div>
+        </div>
+        <div class="queue-list" id="heroQueueList">
+          <div class="qrow"><span>Connecting to server...</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how-it-works">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>How it works</h2>
+        <p>Three simple steps — no line, no guessing the wait.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="num">01</div>
+          <h3>Book a token</h3>
+          <p>Enter your name, phone and service — get a token number instantly.</p>
+        </div>
+        <div class="step">
+          <div class="num">02</div>
+          <h3>Wait for the SMS</h3>
+          <p>When your turn is close, Twilio sends you a text automatically.</p>
+        </div>
+        <div class="step">
+          <div class="num">03</div>
+          <h3>Walk in</h3>
+          <p>Head straight to your chair — no waiting around, no wasted time.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="book">
+    <div class="wrap book-grid">
+      <div>
+        <div class="section-head">
+          <h2>Book your token</h2>
+          <p>Fill in your details — you'll get a token number and SMS confirmation right away.</p>
+        </div>
+        <form id="bookForm">
+          <div class="field">
+            <label for="fname">Your name</label>
+            <input type="text" id="fname" required placeholder="e.g. Rahul Kumar">
+          </div>
+          <div class="field">
+            <label for="fphone">Mobile number</label>
+            <input type="tel" id="fphone" required placeholder="+91 98xxxxxxx" pattern="^\+?[0-9]{10,13}$">
+          </div>
+          <div class="field">
+            <label for="fservice">Service</label>
+            <select id="fservice">
+              <option>Hair Cut</option>
+              <option>Hair Cut + Beard</option>
+              <option>Hair Spa</option>
+              <option>Facial</option>
+              <option>Hair Colour</option>
+              <option>Bridal / Party Makeup</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-primary">Get Token</button>
+          <div id="bookMsg"></div>
+        </form>
+      </div>
+
+      <div class="token-result" id="tokenResult">
+        <div class="label" style="color:var(--text-dim); font-size:0.85rem;">Your token number</div>
+        <div class="tok" id="tokenNumber">T—</div>
+        <div class="sub" id="tokenSub">This updates live with how many people are ahead of you.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="queue">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Live queue board</h2>
+        <p>The actual line at the salon right now — refreshes every 5 seconds.</p>
+      </div>
+      <div class="board" style="max-width:520px;">
+        <div class="board-head">
+          <span class="name">Tejvix — Today</span>
+          <span class="live-dot">Live</span>
+        </div>
+        <div class="now-serving">
+          <div class="label">Now serving</div>
+          <div class="tok" id="liveNowServing">—</div>
+        </div>
+        <div class="queue-list" id="liveQueueList"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="services">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Services & pricing</h2>
+      </div>
+      <div class="services">
+        <div class="svc"><span>Hair Cut</span><span class="price">₹150</span></div>
+        <div class="svc"><span>Hair Cut + Beard Styling</span><span class="price">₹250</span></div>
+        <div class="svc"><span>Hair Spa</span><span class="price">₹499</span></div>
+        <div class="svc"><span>Facial (Basic)</span><span class="price">₹599</span></div>
+        <div class="svc"><span>Hair Colour</span><span class="price">₹899</span></div>
+        <div class="svc"><span>Bridal / Party Makeup</span><span class="price">From ₹2999</span></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer id="contact">
+  <div class="wrap foot-grid">
+    <div>
+      <div class="logo">Tejvix<span>.</span></div>
+      <p>Tejvix Salon — Muzaffarpur, Bihar. Save your time with our token and queue system.</p>
+    </div>
+    <div class="foot-right">
+      <div>Muzaffarpur, Bihar</div>
+      <div>Open daily — 10:00 AM to 8:00 PM</div>
+      <div>© 2026 Tejvix Salon</div>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // Relative paths — netlify.toml redirects /api/* to the serverless functions,
+  // so this works both locally (netlify dev) and once deployed on Netlify.
+  const API_BASE = "/api";
+
+  const form = document.getElementById('bookForm');
+  const bookMsg = document.getElementById('bookMsg');
+  const tokenResult = document.getElementById('tokenResult');
+  const tokenNumber = document.getElementById('tokenNumber');
+  const tokenSub = document.getElementById('tokenSub');
+  const toast = document.getElementById('toast');
+
+  function showToast(text){
+    toast.textContent = text;
+    toast.classList.add('show');
+    setTimeout(()=> toast.classList.remove('show'), 3200);
+  }
+
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const name = document.getElementById('fname').value.trim();
+    const phone = document.getElementById('fphone').value.trim();
+    const service = document.getElementById('fservice').value;
+
+    bookMsg.textContent = "Booking your token...";
+    bookMsg.className = "";
+
+    try{
+      const res = await fetch(`${API_BASE}/book`, {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({name, phone, service})
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || "Something went wrong");
+
+      tokenNumber.textContent = data.token;
+      tokenSub.textContent = `${data.ahead} people are ahead of you. An SMS confirmation has been sent.`;
+      tokenResult.classList.add('show');
+      bookMsg.textContent = "Token confirmed! ✓";
+      bookMsg.className = "ok";
+      form.reset();
+      loadQueue();
+    }catch(err){
+      bookMsg.textContent = "Couldn't reach the server — check that the backend/functions are running.";
+      bookMsg.className = "err";
+      console.error(err);
+    }
+  });
+
+  async function loadQueue(){
+    try{
+      const res = await fetch(`${API_BASE}/queue`);
+      const data = await res.json();
+
+      const nowServing = data.now_serving ? data.now_serving.token : "—";
+      document.getElementById('heroNowServing').textContent = nowServing;
+      document.getElementById('liveNowServing').textContent = nowServing;
+
+      const rows = data.waiting.map(item => `
+        <div class="qrow">
+          <span class="tok-mini">${item.token}</span>
+          <span>${item.name}</span>
+          <span class="wait">${item.service}</span>
+        </div>`).join('');
+
+      const emptyRow = `<div class="qrow"><span>No one waiting right now</span></div>`;
+      document.getElementById('heroQueueList').innerHTML = rows || emptyRow;
+      document.getElementById('liveQueueList').innerHTML = rows || emptyRow;
+    }catch(err){
+      document.getElementById('heroQueueList').innerHTML = `<div class="qrow"><span>Couldn't reach the server</span></div>`;
+      document.getElementById('liveQueueList').innerHTML = `<div class="qrow"><span>Couldn't reach the server</span></div>`;
+    }
+  }
+
+  loadQueue();
+  setInterval(loadQueue, 5000);
+</script>
+
+</body>
+</html>
