@@ -168,7 +168,7 @@
 
 <header>
   <nav class="wrap">
-    <div class="logo">Tejvix<span>.</span></div>
+    <a href="index.html" class="logo">Tejvix<span>.</span></a>
     <div class="navlinks">
       <a href="#book">Get a Token</a>
       <a href="#queue">Live Queue</a>
@@ -180,21 +180,34 @@
 </header>
 
 <main>
+  <section class="hero" id="directorySection">
+    <div class="wrap">
+      <div class="eyebrow">Muzaffarpur's local salons, online</div>
+      <h1>Choose your salon</h1>
+      <p class="lede">Pick a salon below to book a token and see their live queue — no more standing in line.</p>
+      <div class="steps" id="salonCards">
+        <div class="step"><p>Loading salons...</p></div>
+      </div>
+    </div>
+  </section>
+
+  <div id="salonSections" style="display:none;">
   <section class="hero">
     <div class="wrap hero-grid">
       <div>
-        <div class="eyebrow">Muzaffarpur's own salon</div>
-        <h1>No more standing in line.</h1>
-        <p class="lede">Book your token at Tejvix, get an SMS update when your turn is close, and walk in only when it's actually time for your chair.</p>
+        <div class="eyebrow" id="salonEyebrow">Muzaffarpur's own salon</div>
+        <h1 id="salonHeadline">No more standing in line.</h1>
+        <p class="lede" id="salonLede">Book your token, get an SMS update when your turn is close, and walk in only when it's actually time for your chair.</p>
         <div class="hero-actions">
           <a href="#book" class="btn-primary">Get Your Token</a>
           <a href="#queue" class="btn-ghost">See Live Queue</a>
+          <a href="index.html" class="btn-ghost">← All Salons</a>
         </div>
       </div>
 
       <div class="board" id="heroBoard">
         <div class="board-head">
-          <span class="name">Tejvix — Today</span>
+          <span class="name" id="heroBoardName">Today</span>
           <span class="live-dot">Live</span>
         </div>
         <div class="now-serving">
@@ -223,7 +236,7 @@
         <div class="step">
           <div class="num">02</div>
           <h3>Wait for the SMS</h3>
-          <p>When your turn is close, Twilio sends you a text automatically.</p>
+          <p>When your turn is close, Fast2SMS sends you a text automatically.</p>
         </div>
         <div class="step">
           <div class="num">03</div>
@@ -282,7 +295,7 @@
       </div>
       <div class="board" style="max-width:520px;">
         <div class="board-head">
-          <span class="name">Tejvix — Today</span>
+          <span class="name" id="liveBoardName">Today</span>
           <span class="live-dot">Live</span>
         </div>
         <div class="now-serving">
@@ -309,21 +322,23 @@
       </div>
     </div>
   </section>
+  </div>
 </main>
 
 <footer id="contact">
   <div class="wrap foot-grid">
     <div>
-      <div class="logo">Tejvix<span>.</span></div>
-      <p>Tejvix Salon — Muzaffarpur, Bihar. Save your time with our token and queue system.</p>
+      <div class="logo" id="footerLogo">Tejvix<span>.</span></div>
+      <p id="footerBlurb">A platform for local salons in Muzaffarpur to run their own live token queue.</p>
     </div>
-    <div class="foot-right">
+    <div class="foot-right" id="footerRight">
       <div>Muzaffarpur, Bihar</div>
       <div>Open daily — 10:00 AM to 8:00 PM</div>
-      <div>© 2026 Tejvix Salon</div>
+      <div>© 2026 Tejvix</div>
     </div>
   </div>
 </footer>
+
 
 <div class="toast" id="toast"></div>
 
@@ -331,6 +346,12 @@
   // Relative paths — netlify.toml redirects /api/* to the serverless functions,
   // so this works both locally (netlify dev) and once deployed on Netlify.
   const API_BASE = "/api";
+
+  const params = new URLSearchParams(window.location.search);
+  const salonSlug = params.get('salon');
+
+  const directorySection = document.getElementById('directorySection');
+  const salonSections = document.getElementById('salonSections');
 
   const form = document.getElementById('bookForm');
   const bookMsg = document.getElementById('bookMsg');
@@ -345,7 +366,54 @@
     setTimeout(()=> toast.classList.remove('show'), 3200);
   }
 
-  form.addEventListener('submit', async (e)=>{
+  // ---------- DIRECTORY MODE (no ?salon= in the URL) ----------
+  async function loadDirectory(){
+    directorySection.style.display = '';
+    salonSections.style.display = 'none';
+
+    const cardsEl = document.getElementById('salonCards');
+    try{
+      const res = await fetch(`${API_BASE}/salons`);
+      const data = await res.json();
+      if(!data.salons || !data.salons.length){
+        cardsEl.innerHTML = `<div class="step"><p>No salons added yet.</p></div>`;
+        return;
+      }
+      cardsEl.innerHTML = data.salons.map(s => `
+        <div class="step">
+          <h3>${s.name}</h3>
+          <p>${s.address || ''}</p>
+          ${s.phone ? `<p>${s.phone}</p>` : ''}
+          <div style="margin-top:14px;">
+            <a href="?salon=${encodeURIComponent(s.slug)}" class="btn-primary">View live queue & book →</a>
+          </div>
+        </div>
+      `).join('');
+    }catch(err){
+      cardsEl.innerHTML = `<div class="step"><p>Couldn't load salons — check that the backend/functions are running.</p></div>`;
+      console.error(err);
+    }
+  }
+
+  // ---------- SALON MODE (?salon=slug in the URL) ----------
+  function applySalonBranding(salon){
+    document.title = `${salon.name} — Token & Queue Booking`;
+    document.getElementById('salonEyebrow').textContent = salon.address || 'Local salon';
+    document.getElementById('salonHeadline').textContent = `No more standing in line at ${salon.name}.`;
+    document.getElementById('salonLede').textContent = `Book your token at ${salon.name}, get an SMS update when your turn is close, and walk in only when it's actually time for your chair.`;
+    document.getElementById('heroBoardName').textContent = `${salon.name} — Today`;
+    document.getElementById('liveBoardName').textContent = `${salon.name} — Today`;
+    document.getElementById('footerLogo').innerHTML = `${salon.name}<span>.</span>`;
+    document.getElementById('footerBlurb').textContent = `${salon.name} — ${salon.address || 'Muzaffarpur'}. Save your time with our token and queue system.`;
+    const footerRight = document.getElementById('footerRight');
+    footerRight.innerHTML = `
+      <div>${salon.address || ''}</div>
+      ${salon.phone ? `<div>${salon.phone}</div>` : ''}
+      <div>© 2026 ${salon.name}</div>
+    `;
+  }
+
+  form && form.addEventListener('submit', async (e)=>{
     e.preventDefault();
     const name = document.getElementById('fname').value.trim();
     const phone = document.getElementById('fphone').value.trim();
@@ -358,7 +426,7 @@
       const res = await fetch(`${API_BASE}/book`, {
         method:"POST",
         headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({name, phone, service})
+        body: JSON.stringify({salon: salonSlug, name, phone, service})
       });
       const data = await res.json();
       if(!res.ok) throw new Error(data.error || "Something went wrong");
@@ -379,8 +447,11 @@
 
   async function loadQueue(){
     try{
-      const res = await fetch(`${API_BASE}/queue`);
+      const res = await fetch(`${API_BASE}/queue?salon=${encodeURIComponent(salonSlug)}`);
       const data = await res.json();
+      if(!res.ok) throw new Error(data.error || "Salon not found");
+
+      if(data.salon) applySalonBranding(data.salon);
 
       const nowServing = data.now_serving ? data.now_serving.token : "—";
       document.getElementById('heroNowServing').textContent = nowServing;
@@ -399,11 +470,19 @@
     }catch(err){
       document.getElementById('heroQueueList').innerHTML = `<div class="qrow"><span>Couldn't reach the server</span></div>`;
       document.getElementById('liveQueueList').innerHTML = `<div class="qrow"><span>Couldn't reach the server</span></div>`;
+      console.error(err);
     }
   }
 
-  loadQueue();
-  setInterval(loadQueue, 5000);
+  // ---------- Entry point ----------
+  if (salonSlug){
+    directorySection.style.display = 'none';
+    salonSections.style.display = '';
+    loadQueue();
+    setInterval(loadQueue, 5000);
+  } else {
+    loadDirectory();
+  }
 </script>
 
 </body>

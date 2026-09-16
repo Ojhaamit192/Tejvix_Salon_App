@@ -1,10 +1,9 @@
-const { getStore } = require("@netlify/blobs");
-const { CORS_HEADERS, todayKey } = require("./_shared");
-const { sendSms } = require("./_twilio");
+const { CORS_HEADERS } = require("./_shared");
+const { getSupabase, todayDate } = require("./_supabase");
+const { sendSms } = require("./_sms");
 
-// This endpoint is for salon staff to call the next customer.
-// It's plain API for now — wire it up to an admin button/page, or call
-// it directly (e.g. with a tool like Postman or curl) at the counter.
+// Called by the barber's admin page when they tap "Next Customer".
+// Body: { salon: "tejvix", pin: "1234" }
 exports.handler = async (event) => {
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 200, headers: CORS_HEADERS, body: "" };
@@ -13,29 +12,72 @@ exports.handler = async (event) => {
     return { statusCode: 405, headers: CORS_HEADERS, body: JSON.stringify({ error: "Method not allowed" }) };
   }
 
-  const store = getStore("tejvix-queue");
-  const key = todayKey();
-  const current = (await store.get(key, { type: "json" })) || { tokens: [] };
+  let data;
+  try {
+    data = JSON.parse(event.body || "{}");
+  } catch {
+    data = {};
+  }
 
-  // Mark whoever was being served as done.
-  current.tokens = current.tokens.map((t) => (t.status === "serving" ? { ...t, status: "done" } : t));
+  const salonSlug = (data.salon || "").trim();
+  const pin = (data.pin || "").trim();
 
-  const waiting = current.tokens.filter((t) => t.status === "waiting").sort((a, b) => a.seq - b.seq);
-  const next = waiting[0];
+  if (!salonSlug || !pin) {
+    return { statusCode: 400, headers: CORS_HEADERS, body: JSON.stringify({ error: "salon and pin are required" }) };
+  }
+
+  const supabase = getSupabase();
+
+  const { data: salon, error: salonErr } = await supabase
+    .from("salons")
+    .select("id, name, admin_pin")
+    .eq("slug", salonSlug)
+    .single();
+
+  if (salonErr || !salon) {
+    return { statusCode: 404, headers: CORS_HEADERS, body: JSON.stringify({ error: "Salon not found" }) };
+  }
+
+  if (pin !== salon.admin_pin) {
+    return { statusCode: 401, headers: CORS_HEADERS, body: JSON.stringify({ error: "Incorrect PIN" }) };
+  }
+
+  const day = todayDate();
+
+  // Mark whoever is currently "serving" as done.
+  await supabase
+    .from("tokens")
+    .update({ status: "done" })
+    .eq("salon_id", salon.id)
+    .eq("day", day)
+    .eq("status", "serving");
+
+  const { data: waiting, error: waitingErr } = await supabase
+    .from("tokens")
+    .select("id, seq, phone")
+    .eq("salon_id", salon.id)
+    .eq("day", day)
+    .eq("status", "waiting")
+    .order("seq")
+    .limit(2);
+
+  if (waitingErr) {
+    return { statusCode: 500, headers: CORS_HEADERS, body: JSON.stringify({ error: waitingErr.message }) };
+  }
+
+  const next = waiting && waiting[0];
+  const upcoming = waiting && waiting[1];
 
   if (!next) {
-    await store.setJSON(key, current);
     return { statusCode: 200, headers: CORS_HEADERS, body: JSON.stringify({ message: "Queue is empty" }) };
   }
 
-  current.tokens = current.tokens.map((t) => (t.seq === next.seq ? { ...t, status: "serving" } : t));
-  await store.setJSON(key, current);
+  await supabase.from("tokens").update({ status: "serving" }).eq("id", next.id);
 
-  await sendSms(next.phone, `Tejvix Salon: It's your turn! Token T${next.seq} — please come to the counter.`);
+  await sendSms(next.phone, `${salon.name}: It's your turn! Token T${next.seq} — please come to the counter.`);
 
-  const upcoming = waiting[1];
   if (upcoming) {
-    await sendSms(upcoming.phone, `Tejvix Salon: You're next (Token T${upcoming.seq}). Please be ready.`);
+    await sendSms(upcoming.phone, `${salon.name}: You're next (Token T${upcoming.seq}). Please be ready.`);
   }
 
   return { statusCode: 200, headers: CORS_HEADERS, body: JSON.stringify({ now_serving: `T${next.seq}` }) };

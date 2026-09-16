@@ -1,92 +1,128 @@
-# Tejvix Salon — Token & Queue App
+# Tejvix — Multi-Salon Live Queue Platform
 
-A token/queue booking app for **Tejvix**, a salon in Muzaffarpur.
-Built to deploy entirely on **Netlify** via GitHub — no separate backend server to host.
+A token/queue booking platform that any local salon can join — not just one
+shop. Built with **Supabase** (database), **Fast2SMS** (SMS notifications),
+and deployed entirely on **Netlify** (frontend + serverless backend).
 
-- `index.html` — the customer-facing app (booking form, live queue board, services)
-- `netlify/functions/` — serverless functions that handle the queue and send SMS via Twilio
-- `netlify.toml` — routes `/api/*` to the functions
-- Queue data is stored in **Netlify Blobs** (Netlify's built-in key-value store), so no external database is needed
+Two demo salons are seeded so you can show it working for more than one shop:
+**Tejvix Salon** and **Prince Salon**, both in Muzaffarpur.
 
-## Why serverless functions instead of one HTML file
+## What's in this project
 
-Twilio needs an Account SID and Auth Token to send SMS — these are secret. Putting
-them directly in `index.html`/JavaScript would let anyone who views the page
-source steal them and send SMS on your Twilio bill. So the Twilio calls live in
-small Node.js functions that run on Netlify's servers, and `index.html` only
-talks to those functions over `/api/...`.
+- `index.html` — the customer-facing app. With no `?salon=` in the URL it
+  shows a **directory** of all salons; with `?salon=tejvix` (or any slug) it
+  shows that salon's live queue board and booking form.
+- `admin.html` — the **staff panel**. Opened as `admin.html?salon=tejvix`,
+  it shows who's being served and has one big **"Call Next Customer"**
+  button, protected by a PIN.
+- `netlify/functions/` — serverless functions: `salons.js` (list salons),
+  `book.js` (create a token), `queue.js` (read the live queue),
+  `next.js` (staff calls the next customer).
+- `supabase/schema.sql` — the database schema to run in your Supabase project.
+- `netlify.toml` — routes `/api/*` to the functions.
 
-## 1. Push this to GitHub
+## How the pieces fit together
+
+```
+Customer's phone  ──►  index.html (?salon=prince-salon)
+                          │  fetch("/api/book"), fetch("/api/queue")
+                          ▼
+                    Netlify Functions  ──►  Supabase (Postgres)
+                          │                   stores salons + tokens
+                          └──►  Fast2SMS  ──►  Customer's SMS
+
+Staff at the counter  ──►  admin.html (?salon=prince-salon)
+                          │  fetch("/api/next")  [PIN-protected]
+                          ▼
+                    Netlify Functions  ──►  Supabase: mark current token
+                                              "done", next one "serving"
+                                         ──►  Fast2SMS: text that customer
+                                              + the one after them
+```
+
+The database is never reached directly from the browser — Supabase's
+**service role key** (a secret, full-access key) lives only in Netlify's
+environment variables and is used only inside the functions. This is why
+`supabase/schema.sql` doesn't add any public read/write policies: the only
+door in is through your own functions.
+
+## 1. Set up Supabase
+
+1. Create a free project at [supabase.com](https://supabase.com).
+2. Open **SQL Editor → New query**, paste the entire contents of
+   `supabase/schema.sql`, and run it. This creates the `salons` and `tokens`
+   tables and seeds the two demo salons (Tejvix, Prince Salon).
+3. Go to **Settings → API** and copy:
+   - **Project URL** → this is `SUPABASE_URL`
+   - **service_role key** (not the `anon` key!) → this is `SUPABASE_SERVICE_ROLE_KEY`
+
+## 2. Set up Fast2SMS
+
+1. Sign up at [fast2sms.com](https://www.fast2sms.com) (new accounts get some free SMS credit).
+2. Go to **Dev API** ([fast2sms.com/dashboard/dev-api](https://www.fast2sms.com/dashboard/dev-api)) and copy your API key → this is `FAST2SMS_API_KEY`.
+
+## 3. Push to GitHub & deploy on Netlify
 
 ```bash
-cd tejvix-salon-app
 git init
 git add .
-git commit -m "Tejvix salon token app"
+git commit -m "Multi-salon queue platform"
 git branch -M main
 git remote add origin https://github.com/<your-username>/<your-repo>.git
 git push -u origin main
 ```
 
-(`.env` and `node_modules` are already excluded via `.gitignore` — never commit real Twilio keys.)
+Then on [app.netlify.com](https://app.netlify.com): **Add new site → Import an
+existing project** → connect the repo. `netlify.toml` already sets the build
+config, so just deploy.
 
-## 2. Deploy on Netlify
+## 4. Add environment variables
 
-1. Go to [app.netlify.com](https://app.netlify.com) → **Add new site → Import an existing project**.
-2. Connect GitHub and pick this repository.
-3. Build settings: leave **Publish directory** as `.` and **Functions directory** as `netlify/functions` — `netlify.toml` already has these set, so Netlify should detect them automatically.
-4. Deploy. Netlify installs the dependencies in `package.json` automatically.
-
-## 3. Add your Twilio credentials
-
-In the Netlify dashboard: **Site settings → Environment variables**, add:
+In Netlify: **Site settings → Environment variables**, add:
 
 | Key | Value |
 |---|---|
-| `TWILIO_ACCOUNT_SID` | from console.twilio.com |
-| `TWILIO_AUTH_TOKEN` | from console.twilio.com |
-| `TWILIO_FROM_NUMBER` | your Twilio phone number, e.g. `+1xxxxxxxxxx` |
+| `SUPABASE_URL` | from Supabase Settings → API |
+| `SUPABASE_SERVICE_ROLE_KEY` | the service_role key (keep secret!) |
+| `FAST2SMS_API_KEY` | from Fast2SMS Dev API page |
 
-Then trigger a redeploy (**Deploys → Trigger deploy**) so the functions pick up the new variables.
+Redeploy (**Deploys → Trigger deploy**) so the functions pick these up.
 
-Without these set, the app still works fully — SMS sending just gets skipped, and a
-`[DEV MODE - SMS not sent]` line is logged instead (visible in **Functions → book/next → Logs** on Netlify).
+Without these set, everything still runs — SMS just gets skipped and logged
+as `[DEV MODE - SMS not sent]` (see **Functions → book/next → Logs** on Netlify),
+and Supabase calls will fail until the keys are added.
 
-## 4. Enable Netlify Blobs
+## Try it out
 
-Netlify Blobs works out of the box on Netlify's servers with no extra setup — it's automatically available to your functions once deployed.
+- Directory: `https://your-site.netlify.app/`
+- Tejvix's page: `https://your-site.netlify.app/index.html?salon=tejvix`
+- Prince Salon's page: `https://your-site.netlify.app/index.html?salon=prince-salon`
+- Tejvix staff panel: `https://your-site.netlify.app/admin.html?salon=tejvix` (PIN: `1234`)
+- Prince Salon staff panel: `https://your-site.netlify.app/admin.html?salon=prince-salon` (PIN: `5678`)
 
-## Testing locally before deploying (optional)
+(Change these demo PINs in the `salons` table before showing this to anyone outside your team.)
 
-If you have [Netlify CLI](https://docs.netlify.com/cli/get-started/) installed:
+## Adding a new salon
 
-```bash
-npm install
-npm install -g netlify-cli
-netlify dev
+Run this in Supabase's SQL Editor (adjust the values):
+
+```sql
+insert into salons (slug, name, address, phone, admin_pin)
+values ('new-salon-slug', 'New Salon Name', 'Address, City', '+91 xxxxxxxxxx', '9999');
 ```
 
-Copy `.env.example` to `.env` and fill in your Twilio details for local testing
-(or leave it out to test in dev mode with no real SMS sent). `netlify dev` runs
-`index.html` and the functions together, so you can test the whole flow at
-`http://localhost:8888`.
+It'll immediately show up in the directory and get its own booking page and
+staff panel — no code changes needed.
 
-## How the queue works
+## Limitations to know about (this is a demo-grade build)
 
-- A customer submits the form → `book.js` assigns the next token (T1, T2, ...) for
-  today, saves it in the queue's blob, and sends a Twilio SMS confirmation.
-- Salon staff call `next.js` (`POST /api/next`) to move the queue forward — it
-  marks the current token done, promotes the next one to "serving" and texts
-  them, and also texts whoever is now second in line to get ready.
-- `index.html` polls `queue.js` (`GET /api/queue`) every 5 seconds to keep the
-  live board up to date.
-- The queue resets naturally each day, since tokens are stored under a key
-  based on today's date.
-
-## What to add next
-
-- A small admin page or button that calls `/api/next`, so staff don't need a
-  separate tool to advance the queue.
-- WhatsApp notifications: Twilio's WhatsApp API works through the same
-  `_twilio.js` helper — just use a WhatsApp-enabled Twilio number (e.g.
-  `whatsapp:+14155238886`) as the `from`/`to` prefix.
+- The staff panel's PIN check is simple and meant for a single-location demo,
+  not bank-grade security — anyone with the PIN and the URL can call the next
+  customer. Good enough to show the concept; add real staff logins before
+  running this for real money.
+- All salons currently share the same services & pricing list on the page
+  (Hair Cut, Hair Spa, etc.) — add a `services` column to `salons` in
+  Supabase and read from it in `index.html` if each salon needs its own list.
+- The queue board polls every 5 seconds rather than updating instantly.
+  Supabase's Realtime feature could push updates the moment they happen —
+  a good next upgrade once the basics are working.

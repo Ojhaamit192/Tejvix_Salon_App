@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff Panel — Call Next Customer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #170F1D;
+    --bg-panel: #241531;
+    --bg-panel-2: #2E1B3D;
+    --line: #3A2749;
+    --gold: #C9A227;
+    --gold-soft: #E8C766;
+    --text: #F4EEE6;
+    --text-dim: #B9A9C4;
+    --success: #5EAE7C;
+    --danger: #D3695F;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg); color:var(--text); font-family:'Inter', sans-serif;
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  h1,h2{font-family:'Fraunces', serif; font-weight:500;}
+  .card{
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:18px;
+    padding:32px; max-width:440px; width:100%; text-align:center;
+  }
+  .salon-name{font-size:1.2rem; color:var(--gold-soft); margin-bottom:4px;}
+  .label{color:var(--text-dim); font-size:0.85rem; margin-bottom:6px;}
+  .now-serving{
+    background:linear-gradient(135deg, var(--bg-panel-2), var(--bg-panel));
+    border:1px solid var(--line); border-radius:14px; padding:28px; margin:20px 0;
+  }
+  .tok{font-family:'Fraunces',serif; font-size:3.2rem; color:var(--gold-soft);}
+  .waiting-count{color:var(--text-dim); font-size:0.95rem; margin-bottom:20px;}
+  input{
+    width:100%; background:var(--bg); border:1px solid var(--line); border-radius:8px;
+    padding:14px; color:var(--text); font-size:1.4rem; text-align:center; letter-spacing:4px;
+    margin-bottom:14px;
+  }
+  button{
+    width:100%; background:var(--gold); color:#231407; padding:18px; border-radius:10px;
+    font-weight:700; font-size:1.1rem; border:none; cursor:pointer;
+  }
+  button:hover{background:var(--gold-soft);}
+  button:disabled{opacity:0.5; cursor:not-allowed;}
+  #msg{font-size:0.9rem; margin-top:14px; min-height:20px;}
+  #msg.ok{color:var(--success);}
+  #msg.err{color:var(--danger);}
+  #pinGate{display:flex; flex-direction:column; gap:10px;}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="label">Staff Panel</div>
+  <h1 class="salon-name" id="salonName">Loading...</h1>
+
+  <div id="pinGate">
+    <div class="label" style="margin-top:10px;">Enter staff PIN to continue</div>
+    <input type="password" id="pinInput" inputmode="numeric" placeholder="••••" maxlength="8">
+    <button id="unlockBtn">Unlock</button>
+  </div>
+
+  <div id="mainPanel" style="display:none;">
+    <div class="now-serving">
+      <div class="label">Now serving</div>
+      <div class="tok" id="nowServing">—</div>
+    </div>
+    <div class="waiting-count" id="waitingCount">— waiting</div>
+    <button id="nextBtn">Call Next Customer →</button>
+  </div>
+
+  <div id="msg"></div>
+</div>
+
+<script>
+  const API_BASE = "/api";
+  const params = new URLSearchParams(window.location.search);
+  const salonSlug = params.get('salon');
+  let pin = null;
+
+  const salonNameEl = document.getElementById('salonName');
+  const pinGate = document.getElementById('pinGate');
+  const pinInput = document.getElementById('pinInput');
+  const unlockBtn = document.getElementById('unlockBtn');
+  const mainPanel = document.getElementById('mainPanel');
+  const nowServingEl = document.getElementById('nowServing');
+  const waitingCountEl = document.getElementById('waitingCount');
+  const nextBtn = document.getElementById('nextBtn');
+  const msgEl = document.getElementById('msg');
+
+  if (!salonSlug){
+    salonNameEl.textContent = "No salon specified";
+    pinGate.style.display = 'none';
+    msgEl.textContent = "Open this page as admin.html?salon=your-salon-slug";
+    msgEl.className = 'err';
+  }
+
+  async function refreshStatus(){
+    if (!salonSlug) return;
+    try{
+      const res = await fetch(`${API_BASE}/queue?salon=${encodeURIComponent(salonSlug)}`);
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error);
+      if(data.salon) salonNameEl.textContent = data.salon.name;
+      nowServingEl.textContent = data.now_serving ? data.now_serving.token : "—";
+      waitingCountEl.textContent = `${data.waiting.length} waiting`;
+    }catch(err){
+      console.error(err);
+    }
+  }
+
+  unlockBtn.addEventListener('click', () => {
+    if (!pinInput.value.trim()){
+      msgEl.textContent = "Enter your PIN first";
+      msgEl.className = 'err';
+      return;
+    }
+    pin = pinInput.value.trim();
+    pinGate.style.display = 'none';
+    mainPanel.style.display = 'block';
+    msgEl.textContent = '';
+    refreshStatus();
+  });
+
+  nextBtn.addEventListener('click', async () => {
+    nextBtn.disabled = true;
+    nextBtn.textContent = "Calling...";
+    msgEl.textContent = '';
+
+    try{
+      const res = await fetch(`${API_BASE}/next`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ salon: salonSlug, pin })
+      });
+      const data = await res.json();
+
+      if (res.status === 401){
+        msgEl.textContent = "Incorrect PIN — locking again.";
+        msgEl.className = 'err';
+        mainPanel.style.display = 'none';
+        pinGate.style.display = 'flex';
+        pinInput.value = '';
+        pin = null;
+        return;
+      }
+      if(!res.ok) throw new Error(data.error || "Something went wrong");
+
+      if (data.message === "Queue is empty"){
+        msgEl.textContent = "Queue is empty — no one waiting.";
+        msgEl.className = 'ok';
+      } else {
+        msgEl.textContent = `Called ${data.now_serving}. SMS sent.`;
+        msgEl.className = 'ok';
+      }
+      refreshStatus();
+    }catch(err){
+      msgEl.textContent = "Couldn't reach the server — check that the backend/functions are running.";
+      msgEl.className = 'err';
+      console.error(err);
+    }finally{
+      nextBtn.disabled = false;
+      nextBtn.textContent = "Call Next Customer →";
+    }
+  });
+
+  refreshStatus();
+  setInterval(refreshStatus, 5000);
+</script>
+
+</body>
+</html>
