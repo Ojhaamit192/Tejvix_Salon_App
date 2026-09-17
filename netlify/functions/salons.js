@@ -9,7 +9,7 @@ exports.handler = async (event) => {
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from("salons")
-    .select("slug, name, address, phone")
+    .select("slug, name, address, phone, brand_color, photos")
     .order("name");
 
   if (error) {

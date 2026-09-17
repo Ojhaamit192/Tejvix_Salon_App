@@ -6,11 +6,16 @@
 <title>Staff Panel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="assets/logo-icon.png">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/logo-icon.png">
+<meta name="theme-color" content="#FF6A00">
 <style>
+  .admin-logo{ display:block; height:44px; width:auto; margin:0 auto 12px; filter: drop-shadow(0 0 10px rgba(255,106,0,0.55)); }
   :root{
-    --bg: #170F1D; --bg-panel: #241531; --bg-panel-2: #2E1B3D; --line: #3A2749;
-    --gold: #C9A227; --gold-soft: #E8C766; --text: #F4EEE6; --text-dim: #B9A9C4;
-    --success: #5EAE7C; --danger: #D3695F;
+    --bg: #0D0A08; --bg-panel: #1A130E; --bg-panel-2: #241A12; --line: #3D2A1A;
+    --gold: #FF6A00; --gold-soft: #FFB020; --text: #F5F0EA; --text-dim: #C9B29A;
+    --success: #5EAE7C; --danger: #E0574A;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   body{ background:var(--bg); color:var(--text); font-family:'Inter', sans-serif; min-height:100vh; padding:24px; }
@@ -24,7 +29,7 @@
   .tok{font-family:'Fraunces',serif; font-size:2.8rem; color:var(--gold-soft);}
   .waiting-count{color:var(--text-dim); font-size:0.9rem; margin-bottom:16px; text-align:center;}
   button{ width:100%; padding:16px; border-radius:10px; font-weight:700; font-size:1rem; border:none; cursor:pointer; margin-bottom:10px; }
-  .btn-primary{background:var(--gold); color:#231407;}
+  .btn-primary{background:var(--gold); color:#1a0d00; box-shadow:0 0 20px rgba(255,106,0,0.35);}
   .btn-primary:hover{background:var(--gold-soft);}
   .btn-danger{background:var(--bg); border:1px solid var(--danger); color:var(--danger);}
   .btn-secondary{background:var(--bg); border:1px solid var(--line); color:var(--text);}
@@ -42,6 +47,7 @@
 <body>
 <div class="wrap">
   <div class="card">
+    <img src="assets/logo-icon.png" alt="Tejvix" class="admin-logo">
     <div class="label" style="text-align:center;">Staff Panel</div>
     <h1 class="salon-name" id="salonName">Loading...</h1>
 
@@ -81,6 +87,9 @@
 
 <script>
   const API_BASE = "/api";
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+  }
   const params = new URLSearchParams(window.location.search);
   const salonSlug = params.get('salon');
   let pin = null;

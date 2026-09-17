@@ -6,18 +6,25 @@
 <title>Tejvix — Local Salon Queue Platform</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="assets/logo-icon.png">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/logo-icon.png">
+<meta name="theme-color" content="#FF6A00">
 <style>
+  .glow-text{ text-shadow: 0 0 18px rgba(255,106,0,0.45); }
+  .glow-btn{ box-shadow: 0 0 22px rgba(255,106,0,0.35); }
+  .logo-mark{ height:38px; width:auto; filter: drop-shadow(0 0 10px rgba(255,106,0,0.55)); }
   :root{
-    --bg: #170F1D;
-    --bg-panel: #241531;
-    --bg-panel-2: #2E1B3D;
-    --line: #3A2749;
-    --gold: #C9A227;
-    --gold-soft: #E8C766;
-    --text: #F4EEE6;
-    --text-dim: #B9A9C4;
+    --bg: #0D0A08;
+    --bg-panel: #1A130E;
+    --bg-panel-2: #241A12;
+    --line: #3D2A1A;
+    --gold: #FF6A00;
+    --gold-soft: #FFB020;
+    --text: #F5F0EA;
+    --text-dim: #C9B29A;
     --success: #5EAE7C;
-    --danger: #D3695F;
+    --danger: #E0574A;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   html{scroll-behavior:smooth;}
@@ -47,11 +54,11 @@
 
   .hero{padding:64px 0 40px;}
   .eyebrow{color:var(--gold-soft); font-size:0.9rem; margin-bottom:16px;}
-  .hero h1{font-size:clamp(2rem, 4vw, 3rem); line-height:1.15; margin-bottom:16px;}
+  .hero h1{font-size:clamp(2rem, 4vw, 3rem); line-height:1.15; margin-bottom:16px; text-shadow:0 0 24px rgba(255,106,0,0.3);}
   .hero p.lede{color:var(--text-dim); font-size:1.05rem; max-width:60ch; margin-bottom:24px;}
   .hero-actions{display:flex; gap:14px; flex-wrap:wrap;}
-  .btn-primary{ background:var(--gold); color:#231407; padding:13px 24px; border-radius:9px; font-weight:600; font-size:0.98rem; border:none; cursor:pointer; }
-  .btn-primary:hover{background:var(--gold-soft);}
+  .btn-primary{ background:var(--gold); color:#1a0d00; padding:13px 24px; border-radius:9px; font-weight:600; font-size:0.98rem; border:none; cursor:pointer; box-shadow:0 0 22px rgba(255,106,0,0.35); }
+  .btn-primary:hover{background:var(--gold-soft); box-shadow:0 0 28px rgba(255,176,32,0.5);}
   .btn-ghost{ border:1px solid var(--line); padding:13px 24px; border-radius:9px; font-weight:600; font-size:0.98rem; color:var(--text); background:none; cursor:pointer;}
   .btn-ghost:hover{border-color:var(--gold-soft);}
   .btn-small{ background:var(--bg-panel-2); border:1px solid var(--line); color:var(--text); padding:8px 14px; border-radius:7px; font-size:0.85rem; cursor:pointer; }
@@ -115,7 +122,7 @@
 
 <header>
   <nav class="wrap">
-    <a href="index.html" class="logo">Tejvix<span>.</span></a>
+    <a href="index.html" class="logo"><img src="assets/logo-icon.png" alt="Tejvix" class="logo-mark">Tejvix<span>.</span></a>
     <div class="navlinks">
       <a href="#book">Get a Token</a>
       <a href="#queue">Live Queue</a>
@@ -169,8 +176,20 @@
         <div class="hero-actions">
           <a href="#book" class="btn-primary">Get Your Token</a>
           <a href="#queue" class="btn-ghost">See Live Queue</a>
+          <a href="#" id="whatsappBtn" class="btn-ghost" target="_blank" style="display:none;">💬 WhatsApp</a>
+          <a href="#" id="directionsBtn" class="btn-ghost" target="_blank" style="display:none;">📍 Get Directions</a>
           <a href="index.html" class="btn-ghost">← All Salons</a>
         </div>
+        <div id="gallerySection" style="display:none; margin-top:28px;">
+          <div class="grid-cards" id="galleryGrid"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="mapSection" style="display:none; padding-top:0;">
+      <div class="wrap">
+        <div class="section-head"><h2>Find us</h2></div>
+        <iframe id="mapEmbed" width="100%" height="320" style="border:1px solid var(--line); border-radius:14px;" loading="lazy"></iframe>
       </div>
     </section>
 
@@ -216,6 +235,11 @@
           <div class="tok" id="tokenNumber">T—</div>
           <div class="sub" id="tokenSub"></div>
           <div class="loyalty-note" id="loyaltyNote"></div>
+          <div id="paymentSection" style="display:none; margin-top:18px; padding-top:18px; border-top:1px solid var(--line);">
+            <div class="label" style="color:var(--text-dim); font-size:0.85rem; margin-bottom:10px;">Pay for your service (optional)</div>
+            <img id="paymentQr" src="" alt="Payment QR" style="width:160px; height:160px; border-radius:10px; background:#fff; padding:8px;">
+            <div style="color:var(--text-dim); font-size:0.8rem; margin-top:8px;">Scan with any UPI app — GPay, PhonePe, Paytm, etc.</div>
+          </div>
         </div>
       </div>
     </section>
@@ -243,8 +267,13 @@
 <footer id="contact">
   <div class="wrap foot-grid">
     <div>
-      <div class="logo" id="footerLogo">Tejvix<span>.</span></div>
+      <div class="logo" id="footerLogo"><img src="assets/logo-icon.png" alt="Tejvix" class="logo-mark">Tejvix<span>.</span></div>
       <p id="footerBlurb">A platform for local salons in Muzaffarpur to run their own live token queue.</p>
+      <p style="margin-top:10px; font-size:0.85rem;">
+        <a href="privacy.html" style="color:var(--gold-soft);">Privacy Policy</a>
+        &nbsp;·&nbsp;
+        <a href="terms.html" style="color:var(--gold-soft);">Terms &amp; Conditions</a>
+      </p>
     </div>
     <div class="foot-right" id="footerRight">
       <div>Muzaffarpur, Bihar</div>
@@ -322,14 +351,17 @@
           const rd = await r.json();
           if (rd.count) ratingHtml = `<div class="rating-badge">★ ${rd.average} · ${rd.count} review${rd.count>1?'s':''}</div>`;
         }catch{}
+        const photo = (s.photos && s.photos[0]) ? `<img src="${s.photos[0]}" alt="${s.name}" style="width:100%; height:140px; object-fit:cover; border-radius:10px; margin-bottom:12px;">` : '';
+        const accent = s.brand_color || 'var(--gold)';
         return `
-          <div class="card">
+          <div class="card" style="border-top:3px solid ${accent};">
+            ${photo}
             <h3>${s.name}</h3>
             <p>${s.address || ''}</p>
             ${s.phone ? `<p>${s.phone}</p>` : ''}
             ${ratingHtml}
             <div style="margin-top:14px;">
-              <a href="?salon=${encodeURIComponent(s.slug)}" class="btn-primary">View live queue & book →</a>
+              <a href="?salon=${encodeURIComponent(s.slug)}" class="btn-primary" style="background:${accent};">View live queue & book →</a>
             </div>
           </div>`;
       }));
@@ -341,8 +373,30 @@
   }
 
   // ---------- SALON VIEW ----------
+  let currentSalon = null;
+
+  function lightenColor(hex, percent){
+    try{
+      const num = parseInt(hex.replace('#',''), 16);
+      let r = (num >> 16) + Math.round(255 * percent);
+      let g = ((num >> 8) & 0x00FF) + Math.round(255 * percent);
+      let b = (num & 0x0000FF) + Math.round(255 * percent);
+      r = Math.min(255, r); g = Math.min(255, g); b = Math.min(255, b);
+      return `#${(r<<16 | g<<8 | b).toString(16).padStart(6,'0')}`;
+    }catch{ return hex; }
+  }
+
+  function setMetaDescription(text){
+    let tag = document.querySelector('meta[name="description"]');
+    if (!tag){ tag = document.createElement('meta'); tag.name = 'description'; document.head.appendChild(tag); }
+    tag.content = text;
+  }
+
   function applySalonBranding(salon){
+    currentSalon = salon;
     document.title = `${salon.name} — Token & Queue Booking`;
+    setMetaDescription(`Book a token at ${salon.name}${salon.address ? ' in ' + salon.address : ''} and track the live queue — no more standing in line.`);
+
     document.getElementById('salonEyebrow').textContent = salon.address || 'Local salon';
     document.getElementById('salonHeadline').textContent = `No more standing in line at ${salon.name}.`;
     document.getElementById('salonLede').textContent = `Book your token at ${salon.name}, get an SMS update when your turn is close.`;
@@ -352,6 +406,59 @@
       <div>${salon.address || ''}</div>
       ${salon.phone ? `<div>${salon.phone}</div>` : ''}
       <div>© 2026 ${salon.name}</div>`;
+
+    // Per-salon brand color override (falls back to the default orange theme)
+    if (salon.brand_color){
+      document.documentElement.style.setProperty('--gold', salon.brand_color);
+      document.documentElement.style.setProperty('--gold-soft', lightenColor(salon.brand_color, 0.25));
+    }
+
+    // WhatsApp button
+    if (salon.phone){
+      const digits = salon.phone.replace(/[^0-9]/g, '');
+      document.getElementById('whatsappBtn').href = `https://wa.me/${digits}?text=${encodeURIComponent('Hi ' + salon.name + ', I have a question.')}`;
+      document.getElementById('whatsappBtn').style.display = '';
+    }
+
+    // Google Maps embed + Directions (address-based, no API key needed)
+    if (salon.address){
+      const q = encodeURIComponent(`${salon.name}, ${salon.address}`);
+      document.getElementById('mapEmbed').src = `https://www.google.com/maps?q=${q}&output=embed`;
+      document.getElementById('mapSection').style.display = '';
+      const dBtn = document.getElementById('directionsBtn');
+      dBtn.href = `https://www.google.com/maps/dir/?api=1&destination=${q}`;
+      dBtn.style.display = '';
+    }
+
+    // Photo gallery
+    if (salon.photos && salon.photos.length){
+      document.getElementById('galleryGrid').innerHTML = salon.photos.map(url => `
+        <div class="card" style="padding:0; overflow:hidden;">
+          <img src="${url}" alt="${salon.name}" style="width:100%; height:160px; object-fit:cover; display:block;">
+        </div>`).join('');
+      document.getElementById('gallerySection').style.display = '';
+    }
+  }
+
+  function showPaymentQr(serviceId){
+    const section = document.getElementById('paymentSection');
+    const img = document.getElementById('paymentQr');
+    if (!currentSalon) { section.style.display = 'none'; return; }
+
+    if (currentSalon.payment_qr_url){
+      img.src = currentSalon.payment_qr_url;
+      section.style.display = '';
+      return;
+    }
+    if (currentSalon.upi_id){
+      const svc = selectedServices.find(s => s.id === serviceId);
+      const amount = svc ? svc.price : '';
+      const upiUri = `upi://pay?pa=${encodeURIComponent(currentSalon.upi_id)}&pn=${encodeURIComponent(currentSalon.name)}&am=${amount}&cu=INR`;
+      img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUri)}`;
+      section.style.display = '';
+      return;
+    }
+    section.style.display = 'none';
   }
 
   async function loadServices(){
@@ -455,6 +562,7 @@
         document.getElementById('loyaltyNote').textContent = data.loyalty_message || '';
       }
       tokenResult.classList.add('show');
+      showPaymentQr(serviceId);
       bookMsg.textContent = "Confirmed! ✓";
       bookMsg.className = "ok";
       e.target.reset();
@@ -498,6 +606,10 @@
       boardsEl.innerHTML = `<div class="card"><p>Couldn't reach the server.</p></div>`;
       console.error(err);
     }
+  }
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
   }
 
   // ---------- Entry point ----------

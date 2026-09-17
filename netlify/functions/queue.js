@@ -16,7 +16,7 @@ exports.handler = async (event) => {
 
   const { data: salon, error: salonErr } = await supabase
     .from("salons")
-    .select("id, name, address, phone")
+    .select("id, name, address, phone, brand_color, photos, upi_id, payment_qr_url")
     .eq("slug", salonSlug)
     .single();
   if (salonErr || !salon) {
@@ -77,7 +77,15 @@ exports.handler = async (event) => {
     statusCode: 200,
     headers: CORS_HEADERS,
     body: JSON.stringify({
-      salon: { name: salon.name, address: salon.address, phone: salon.phone },
+      salon: {
+        name: salon.name,
+        address: salon.address,
+        phone: salon.phone,
+        brand_color: salon.brand_color,
+        photos: salon.photos || [],
+        upi_id: salon.upi_id,
+        payment_qr_url: salon.payment_qr_url,
+      },
       queues,
     }),
   };
