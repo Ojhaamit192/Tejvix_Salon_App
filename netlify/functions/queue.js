@@ -6,7 +6,8 @@ exports.handler = async (event) => {
     return { statusCode: 200, headers: CORS_HEADERS, body: "" };
   }
 
-  const salonSlug = (event.queryStringParameters && event.queryStringParameters.salon) || "";
+  const params = event.queryStringParameters || {};
+  const salonSlug = params.salon || "";
   if (!salonSlug) {
     return { statusCode: 400, headers: CORS_HEADERS, body: JSON.stringify({ error: "salon query param is required" }) };
   }
@@ -18,34 +19,66 @@ exports.handler = async (event) => {
     .select("id, name, address, phone")
     .eq("slug", salonSlug)
     .single();
-
   if (salonErr || !salon) {
     return { statusCode: 404, headers: CORS_HEADERS, body: JSON.stringify({ error: "Salon not found" }) };
+  }
+
+  const { data: staffList, error: staffErr } = await supabase
+    .from("staff")
+    .select("id, name")
+    .eq("salon_id", salon.id)
+    .eq("is_active", true)
+    .order("name");
+  if (staffErr) {
+    return { statusCode: 500, headers: CORS_HEADERS, body: JSON.stringify({ error: staffErr.message }) };
   }
 
   const day = todayDate();
 
   const { data: tokens, error: tokensErr } = await supabase
     .from("tokens")
-    .select("seq, name, service, status")
+    .select("seq, name, status, staff_id, services(name, duration_minutes)")
     .eq("salon_id", salon.id)
     .eq("day", day)
-    .order("seq");
-
+    .in("status", ["waiting", "serving"]);
   if (tokensErr) {
     return { statusCode: 500, headers: CORS_HEADERS, body: JSON.stringify({ error: tokensErr.message }) };
   }
 
-  const serving = (tokens || []).find((t) => t.status === "serving");
-  const waiting = (tokens || []).filter((t) => t.status === "waiting");
+  const rows = tokens || [];
+
+  const queues = (staffList || []).map((member) => {
+    const mine = rows.filter((t) => t.staff_id === member.id).sort((a, b) => a.seq - b.seq);
+    const serving = mine.find((t) => t.status === "serving");
+    const waiting = mine.filter((t) => t.status === "waiting");
+
+    let runningMinutes = 0;
+    const waitingWithEta = waiting.map((t) => {
+      const duration = t.services ? t.services.duration_minutes : 20;
+      const eta = runningMinutes;
+      runningMinutes += duration;
+      return {
+        token: `T${t.seq}`,
+        name: t.name,
+        service: t.services ? t.services.name : "",
+        estimated_wait_minutes: eta,
+      };
+    });
+
+    return {
+      staff_id: member.id,
+      staff_name: member.name,
+      now_serving: serving ? { token: `T${serving.seq}`, name: serving.name } : null,
+      waiting: waitingWithEta,
+    };
+  });
 
   return {
     statusCode: 200,
     headers: CORS_HEADERS,
     body: JSON.stringify({
       salon: { name: salon.name, address: salon.address, phone: salon.phone },
-      now_serving: serving ? { token: `T${serving.seq}`, name: serving.name } : null,
-      waiting: waiting.map((t) => ({ token: `T${t.seq}`, name: t.name, service: t.service })),
+      queues,
     }),
   };
 };

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tejvix Salon — Muzaffarpur | Token & Queue Booking</title>
+<title>Tejvix — Local Salon Queue Platform</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -22,146 +22,93 @@
   *{box-sizing:border-box; margin:0; padding:0;}
   html{scroll-behavior:smooth;}
   body{
-    background:var(--bg);
-    color:var(--text);
-    font-family:'Inter', sans-serif;
-    line-height:1.5;
-    -webkit-font-smoothing:antialiased;
+    background:var(--bg); color:var(--text); font-family:'Inter', sans-serif;
+    line-height:1.5; -webkit-font-smoothing:antialiased;
   }
-  h1,h2,h3,.display{
-    font-family:'Fraunces', serif;
-    font-weight:500;
-    letter-spacing:-0.01em;
-  }
+  h1,h2,h3,.display{ font-family:'Fraunces', serif; font-weight:500; letter-spacing:-0.01em; }
   a{color:inherit; text-decoration:none;}
-  img,svg{display:block; max-width:100%;}
   .wrap{max-width:1100px; margin:0 auto; padding:0 24px;}
   :focus-visible{outline:2px solid var(--gold-soft); outline-offset:3px;}
 
-  /* NAV */
-  header{
-    position:sticky; top:0; z-index:50;
-    background:rgba(23,15,29,0.9);
-    backdrop-filter:blur(10px);
-    border-bottom:1px solid var(--line);
-  }
-  nav.wrap{
-    display:flex; align-items:center; justify-content:space-between;
-    height:72px;
-  }
+  header{ position:sticky; top:0; z-index:50; background:rgba(23,15,29,0.9); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); }
+  nav.wrap{ display:flex; align-items:center; justify-content:space-between; height:72px; }
   .logo{display:flex; align-items:center; gap:10px; font-family:'Fraunces',serif; font-size:1.35rem; font-weight:600; color:var(--text);}
   .logo span{color:var(--gold-soft);}
   .navlinks{display:flex; gap:32px; font-size:0.95rem; color:var(--text-dim);}
   .navlinks a:hover{color:var(--text);}
-  .navcta{
-    background:var(--gold); color:#231407; padding:10px 20px; border-radius:8px;
-    font-weight:600; font-size:0.9rem;
-  }
+  .navcta{ background:var(--gold); color:#231407; padding:10px 20px; border-radius:8px; font-weight:600; font-size:0.9rem; }
   .navcta:hover{background:var(--gold-soft);}
   @media (max-width:760px){ .navlinks{display:none;} }
 
-  /* HERO */
-  .hero{padding:72px 0 56px;}
-  .hero-grid{display:grid; grid-template-columns:1.05fr 0.95fr; gap:56px; align-items:center;}
-  @media (max-width:900px){ .hero-grid{grid-template-columns:1fr;} }
-  .eyebrow{color:var(--gold-soft); font-size:0.9rem; margin-bottom:16px;}
-  .hero h1{font-size:clamp(2.2rem, 4vw, 3.2rem); line-height:1.12; margin-bottom:20px;}
-  .hero p.lede{color:var(--text-dim); font-size:1.1rem; max-width:46ch; margin-bottom:28px;}
-  .hero-actions{display:flex; gap:14px; flex-wrap:wrap;}
-  .btn-primary{
-    background:var(--gold); color:#231407; padding:14px 26px; border-radius:9px;
-    font-weight:600; font-size:1rem; border:none; cursor:pointer;
-  }
-  .btn-primary:hover{background:var(--gold-soft);}
-  .btn-ghost{
-    border:1px solid var(--line); padding:14px 26px; border-radius:9px;
-    font-weight:600; font-size:1rem; color:var(--text);
-  }
-  .btn-ghost:hover{border-color:var(--gold-soft);}
-
-  /* Live token board mockup - the hero visual */
-  .board{
-    background:var(--bg-panel); border:1px solid var(--line); border-radius:16px;
-    padding:24px; box-shadow:0 30px 60px -30px rgba(0,0,0,0.6);
-  }
-  .board-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;}
-  .board-head .name{font-family:'Fraunces',serif; font-size:1.05rem;}
-  .live-dot{display:inline-flex; align-items:center; gap:6px; font-size:0.8rem; color:var(--success);}
-  .live-dot::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--success); box-shadow:0 0 0 3px rgba(94,174,122,0.2);}
-  .now-serving{
-    background:linear-gradient(135deg, var(--bg-panel-2), var(--bg-panel));
-    border:1px solid var(--line); border-radius:12px; padding:22px; text-align:center; margin-bottom:16px;
-  }
-  .now-serving .label{font-size:0.8rem; color:var(--text-dim); margin-bottom:6px;}
-  .now-serving .tok{font-family:'Fraunces',serif; font-size:2.6rem; color:var(--gold-soft);}
-  .queue-list{display:flex; flex-direction:column; gap:8px;}
-  .qrow{
-    display:flex; justify-content:space-between; align-items:center;
-    background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:10px 14px; font-size:0.9rem;
-  }
-  .qrow .tok-mini{font-weight:600; color:var(--gold-soft); min-width:38px;}
-  .qrow .wait{color:var(--text-dim); font-size:0.8rem;}
-
-  /* STEPS */
-  section{padding:64px 0;}
-  .section-head{max-width:60ch; margin-bottom:44px;}
+  section{padding:56px 0;}
+  .section-head{max-width:60ch; margin-bottom:36px;}
   .section-head h2{font-size:clamp(1.6rem,3vw,2.1rem);}
   .section-head p{color:var(--text-dim); margin-top:10px;}
-  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:24px;}
-  @media (max-width:800px){ .steps{grid-template-columns:1fr;} }
-  .step{background:var(--bg-panel); border:1px solid var(--line); border-radius:14px; padding:26px;}
-  .step .num{font-family:'Fraunces',serif; color:var(--gold-soft); font-size:1.4rem; margin-bottom:10px;}
-  .step h3{font-size:1.05rem; margin-bottom:8px;}
-  .step p{color:var(--text-dim); font-size:0.92rem;}
 
-  /* BOOK FORM */
-  .book-grid{display:grid; grid-template-columns:1fr 1fr; gap:44px;}
-  @media (max-width:900px){ .book-grid{grid-template-columns:1fr;} }
-  form{
-    background:var(--bg-panel); border:1px solid var(--line); border-radius:16px; padding:30px;
-    display:flex; flex-direction:column; gap:16px;
-  }
+  .hero{padding:64px 0 40px;}
+  .eyebrow{color:var(--gold-soft); font-size:0.9rem; margin-bottom:16px;}
+  .hero h1{font-size:clamp(2rem, 4vw, 3rem); line-height:1.15; margin-bottom:16px;}
+  .hero p.lede{color:var(--text-dim); font-size:1.05rem; max-width:60ch; margin-bottom:24px;}
+  .hero-actions{display:flex; gap:14px; flex-wrap:wrap;}
+  .btn-primary{ background:var(--gold); color:#231407; padding:13px 24px; border-radius:9px; font-weight:600; font-size:0.98rem; border:none; cursor:pointer; }
+  .btn-primary:hover{background:var(--gold-soft);}
+  .btn-ghost{ border:1px solid var(--line); padding:13px 24px; border-radius:9px; font-weight:600; font-size:0.98rem; color:var(--text); background:none; cursor:pointer;}
+  .btn-ghost:hover{border-color:var(--gold-soft);}
+  .btn-small{ background:var(--bg-panel-2); border:1px solid var(--line); color:var(--text); padding:8px 14px; border-radius:7px; font-size:0.85rem; cursor:pointer; }
+  .btn-small:hover{border-color:var(--gold-soft);}
+
+  .grid-cards{display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:18px;}
+  .card{background:var(--bg-panel); border:1px solid var(--line); border-radius:14px; padding:22px;}
+  .card h3{font-size:1.1rem; margin-bottom:6px;}
+  .card p{color:var(--text-dim); font-size:0.9rem;}
+  .rating-badge{display:inline-flex; align-items:center; gap:4px; color:var(--gold-soft); font-size:0.85rem; margin-top:8px;}
+
+  form{background:var(--bg-panel); border:1px solid var(--line); border-radius:16px; padding:28px; display:flex; flex-direction:column; gap:16px;}
   label{font-size:0.85rem; color:var(--text-dim); margin-bottom:6px; display:block;}
-  input, select{
-    width:100%; background:var(--bg); border:1px solid var(--line); border-radius:8px;
-    padding:12px 14px; color:var(--text); font-size:0.95rem; font-family:'Inter',sans-serif;
-  }
+  input, select{ width:100%; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:12px 14px; color:var(--text); font-size:0.95rem; font-family:'Inter',sans-serif; }
   input:focus, select:focus{border-color:var(--gold-soft);}
   .field{display:flex; flex-direction:column;}
-  #bookMsg{font-size:0.9rem; padding:10px 0; min-height:22px;}
+  .toggle-row{display:flex; gap:10px;}
+  .toggle-btn{ flex:1; padding:12px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--text-dim); cursor:pointer; font-size:0.9rem; text-align:center; }
+  .toggle-btn.active{ background:var(--gold); color:#231407; border-color:var(--gold); font-weight:600; }
+  #bookMsg{font-size:0.9rem; padding:6px 0; min-height:20px;}
   #bookMsg.ok{color:var(--success);}
   #bookMsg.err{color:var(--danger);}
-  .token-result{
-    background:var(--bg-panel-2); border:1px solid var(--gold); border-radius:14px; padding:24px; text-align:center; display:none;
-  }
-  .token-result.show{display:block;}
-  .token-result .tok{font-family:'Fraunces',serif; font-size:2.8rem; color:var(--gold-soft); margin:8px 0;}
-  .token-result .sub{color:var(--text-dim); font-size:0.9rem;}
 
-  /* SERVICES */
-  .services{display:grid; grid-template-columns:repeat(2,1fr); gap:14px;}
+  .token-result{background:var(--bg-panel-2); border:1px solid var(--gold); border-radius:14px; padding:24px; text-align:center; display:none;}
+  .token-result.show{display:block;}
+  .token-result .tok{font-family:'Fraunces',serif; font-size:2.6rem; color:var(--gold-soft); margin:8px 0;}
+  .token-result .sub{color:var(--text-dim); font-size:0.9rem; margin-top:4px;}
+  .loyalty-note{color:var(--gold-soft); font-size:0.85rem; margin-top:10px;}
+
+  .staff-board{background:var(--bg-panel); border:1px solid var(--line); border-radius:14px; padding:20px; margin-bottom:16px;}
+  .staff-board-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;}
+  .staff-board-head .name{font-family:'Fraunces',serif; font-size:1.05rem;}
+  .live-dot{display:inline-flex; align-items:center; gap:6px; font-size:0.8rem; color:var(--success);}
+  .live-dot::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--success); box-shadow:0 0 0 3px rgba(94,174,122,0.2);}
+  .now-serving{background:linear-gradient(135deg, var(--bg-panel-2), var(--bg-panel)); border:1px solid var(--line); border-radius:12px; padding:18px; text-align:center; margin-bottom:12px;}
+  .now-serving .label{font-size:0.8rem; color:var(--text-dim); margin-bottom:4px;}
+  .now-serving .tok{font-family:'Fraunces',serif; font-size:2.2rem; color:var(--gold-soft);}
+  .queue-list{display:flex; flex-direction:column; gap:8px;}
+  .qrow{display:flex; justify-content:space-between; align-items:center; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:10px 14px; font-size:0.88rem;}
+  .qrow .tok-mini{font-weight:600; color:var(--gold-soft); min-width:36px;}
+  .qrow .eta{color:var(--text-dim); font-size:0.8rem;}
+
+  .services{display:grid; grid-template-columns:repeat(2,1fr); gap:12px;}
   @media (max-width:700px){ .services{grid-template-columns:1fr;} }
-  .svc{
-    display:flex; justify-content:space-between; align-items:baseline;
-    border-bottom:1px solid var(--line); padding:14px 4px; font-size:0.98rem;
-  }
+  .svc{display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px solid var(--line); padding:12px 4px; font-size:0.95rem;}
+  .svc .meta{color:var(--text-dim); font-size:0.8rem;}
   .svc .price{color:var(--gold-soft); font-weight:600;}
 
-  /* CONTACT / FOOTER */
-  footer{border-top:1px solid var(--line); padding:44px 0 32px;}
+  .stars{display:flex; gap:8px; justify-content:center; font-size:2rem; margin:16px 0; cursor:pointer;}
+  .stars span{color:var(--line); transition:color 0.15s;}
+  .stars span.active{color:var(--gold-soft);}
+
+  footer{border-top:1px solid var(--line); padding:40px 0 28px;}
   .foot-grid{display:flex; justify-content:space-between; flex-wrap:wrap; gap:20px;}
-  .foot-grid .logo{margin-bottom:8px;}
   .foot-grid p{color:var(--text-dim); font-size:0.9rem; max-width:40ch;}
   .foot-right{text-align:right; font-size:0.9rem; color:var(--text-dim);}
   @media (max-width:600px){ .foot-right{text-align:left;} }
-
-  .toast{
-    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
-    background:var(--bg-panel-2); border:1px solid var(--gold); color:var(--text);
-    padding:12px 20px; border-radius:10px; font-size:0.9rem; opacity:0; pointer-events:none;
-    transition:all 0.25s ease; z-index:100;
-  }
-  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
 </style>
 </head>
 <body>
@@ -173,155 +120,123 @@
       <a href="#book">Get a Token</a>
       <a href="#queue">Live Queue</a>
       <a href="#services">Services</a>
-      <a href="#contact">Contact</a>
     </div>
     <a href="#book" class="navcta">Get a Token</a>
   </nav>
 </header>
 
 <main>
+
+  <!-- REVIEW VIEW (shown only when URL has ?review=<token_id>) -->
+  <section id="reviewSection" style="display:none;">
+    <div class="wrap" style="max-width:480px;">
+      <div class="section-head">
+        <h2>How was your visit?</h2>
+        <p>Tap a star to rate your experience.</p>
+      </div>
+      <div class="card">
+        <div class="stars" id="starPicker">
+          <span data-v="1">★</span><span data-v="2">★</span><span data-v="3">★</span><span data-v="4">★</span><span data-v="5">★</span>
+        </div>
+        <div class="field">
+          <label for="reviewComment">Comment (optional)</label>
+          <input type="text" id="reviewComment" placeholder="Anything you'd like to add...">
+        </div>
+        <button class="btn-primary" id="submitReview" style="margin-top:12px;">Submit Rating</button>
+        <div id="reviewMsg" style="margin-top:10px; font-size:0.9rem;"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DIRECTORY VIEW -->
   <section class="hero" id="directorySection">
     <div class="wrap">
       <div class="eyebrow">Muzaffarpur's local salons, online</div>
       <h1>Choose your salon</h1>
       <p class="lede">Pick a salon below to book a token and see their live queue — no more standing in line.</p>
-      <div class="steps" id="salonCards">
-        <div class="step"><p>Loading salons...</p></div>
-      </div>
+      <div class="grid-cards" id="salonCards"><div class="card"><p>Loading salons...</p></div></div>
     </div>
   </section>
 
+  <!-- SALON VIEW -->
   <div id="salonSections" style="display:none;">
-  <section class="hero">
-    <div class="wrap hero-grid">
-      <div>
-        <div class="eyebrow" id="salonEyebrow">Muzaffarpur's own salon</div>
+
+    <section class="hero">
+      <div class="wrap">
+        <div class="eyebrow" id="salonEyebrow">Local salon</div>
         <h1 id="salonHeadline">No more standing in line.</h1>
-        <p class="lede" id="salonLede">Book your token, get an SMS update when your turn is close, and walk in only when it's actually time for your chair.</p>
+        <p class="lede" id="salonLede">Book your token, get an SMS update when your turn is close.</p>
         <div class="hero-actions">
           <a href="#book" class="btn-primary">Get Your Token</a>
           <a href="#queue" class="btn-ghost">See Live Queue</a>
           <a href="index.html" class="btn-ghost">← All Salons</a>
         </div>
       </div>
+    </section>
 
-      <div class="board" id="heroBoard">
-        <div class="board-head">
-          <span class="name" id="heroBoardName">Today</span>
-          <span class="live-dot">Live</span>
+    <section id="book">
+      <div class="wrap" style="display:grid; grid-template-columns:1fr 1fr; gap:40px;">
+        <div>
+          <div class="section-head">
+            <h2>Book your token</h2>
+            <p>Choose walk-in for now, or book a slot for later.</p>
+          </div>
+          <form id="bookForm">
+            <div class="toggle-row">
+              <button type="button" class="toggle-btn active" id="walkinToggle">Walk-in now</button>
+              <button type="button" class="toggle-btn" id="apptToggle">Book for later</button>
+            </div>
+            <div class="field">
+              <label for="fname">Your name</label>
+              <input type="text" id="fname" required placeholder="e.g. Rahul Kumar">
+            </div>
+            <div class="field">
+              <label for="fphone">Mobile number</label>
+              <input type="tel" id="fphone" required placeholder="+91 98xxxxxxx" pattern="^\+?[0-9]{10,13}$">
+            </div>
+            <div class="field">
+              <label for="fservice">Service</label>
+              <select id="fservice" required><option value="">Loading...</option></select>
+            </div>
+            <div class="field" id="staffField" style="display:none;">
+              <label for="fstaff">Barber</label>
+              <select id="fstaff"><option value="">Any available</option></select>
+            </div>
+            <div class="field" id="timeField" style="display:none;">
+              <label for="ftime">Time today</label>
+              <select id="ftime"></select>
+            </div>
+            <button type="submit" class="btn-primary">Get Token</button>
+            <div id="bookMsg"></div>
+          </form>
         </div>
-        <div class="now-serving">
-          <div class="label">Now serving</div>
-          <div class="tok" id="heroNowServing">—</div>
-        </div>
-        <div class="queue-list" id="heroQueueList">
-          <div class="qrow"><span>Connecting to server...</span></div>
+
+        <div class="token-result" id="tokenResult">
+          <div class="label" style="color:var(--text-dim); font-size:0.85rem;">Your token</div>
+          <div class="tok" id="tokenNumber">T—</div>
+          <div class="sub" id="tokenSub"></div>
+          <div class="loyalty-note" id="loyaltyNote"></div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section id="how-it-works">
-    <div class="wrap">
-      <div class="section-head">
-        <h2>How it works</h2>
-        <p>Three simple steps — no line, no guessing the wait.</p>
-      </div>
-      <div class="steps">
-        <div class="step">
-          <div class="num">01</div>
-          <h3>Book a token</h3>
-          <p>Enter your name, phone and service — get a token number instantly.</p>
-        </div>
-        <div class="step">
-          <div class="num">02</div>
-          <h3>Wait for the SMS</h3>
-          <p>When your turn is close, Fast2SMS sends you a text automatically.</p>
-        </div>
-        <div class="step">
-          <div class="num">03</div>
-          <h3>Walk in</h3>
-          <p>Head straight to your chair — no waiting around, no wasted time.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="book">
-    <div class="wrap book-grid">
-      <div>
+    <section id="queue">
+      <div class="wrap">
         <div class="section-head">
-          <h2>Book your token</h2>
-          <p>Fill in your details — you'll get a token number and SMS confirmation right away.</p>
+          <h2>Live queue board</h2>
+          <p>Each barber has their own queue — refreshes every 5 seconds.</p>
         </div>
-        <form id="bookForm">
-          <div class="field">
-            <label for="fname">Your name</label>
-            <input type="text" id="fname" required placeholder="e.g. Rahul Kumar">
-          </div>
-          <div class="field">
-            <label for="fphone">Mobile number</label>
-            <input type="tel" id="fphone" required placeholder="+91 98xxxxxxx" pattern="^\+?[0-9]{10,13}$">
-          </div>
-          <div class="field">
-            <label for="fservice">Service</label>
-            <select id="fservice">
-              <option>Hair Cut</option>
-              <option>Hair Cut + Beard</option>
-              <option>Hair Spa</option>
-              <option>Facial</option>
-              <option>Hair Colour</option>
-              <option>Bridal / Party Makeup</option>
-            </select>
-          </div>
-          <button type="submit" class="btn-primary">Get Token</button>
-          <div id="bookMsg"></div>
-        </form>
+        <div id="staffBoards"><div class="card"><p>Loading...</p></div></div>
       </div>
+    </section>
 
-      <div class="token-result" id="tokenResult">
-        <div class="label" style="color:var(--text-dim); font-size:0.85rem;">Your token number</div>
-        <div class="tok" id="tokenNumber">T—</div>
-        <div class="sub" id="tokenSub">This updates live with how many people are ahead of you.</div>
+    <section id="services">
+      <div class="wrap">
+        <div class="section-head"><h2>Services & pricing</h2></div>
+        <div class="services" id="servicesList"><p>Loading...</p></div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section id="queue">
-    <div class="wrap">
-      <div class="section-head">
-        <h2>Live queue board</h2>
-        <p>The actual line at the salon right now — refreshes every 5 seconds.</p>
-      </div>
-      <div class="board" style="max-width:520px;">
-        <div class="board-head">
-          <span class="name" id="liveBoardName">Today</span>
-          <span class="live-dot">Live</span>
-        </div>
-        <div class="now-serving">
-          <div class="label">Now serving</div>
-          <div class="tok" id="liveNowServing">—</div>
-        </div>
-        <div class="queue-list" id="liveQueueList"></div>
-      </div>
-    </div>
-  </section>
-
-  <section id="services">
-    <div class="wrap">
-      <div class="section-head">
-        <h2>Services & pricing</h2>
-      </div>
-      <div class="services">
-        <div class="svc"><span>Hair Cut</span><span class="price">₹150</span></div>
-        <div class="svc"><span>Hair Cut + Beard Styling</span><span class="price">₹250</span></div>
-        <div class="svc"><span>Hair Spa</span><span class="price">₹499</span></div>
-        <div class="svc"><span>Facial (Basic)</span><span class="price">₹599</span></div>
-        <div class="svc"><span>Hair Colour</span><span class="price">₹899</span></div>
-        <div class="svc"><span>Bridal / Party Makeup</span><span class="price">From ₹2999</span></div>
-      </div>
-    </div>
-  </section>
   </div>
 </main>
 
@@ -333,151 +248,266 @@
     </div>
     <div class="foot-right" id="footerRight">
       <div>Muzaffarpur, Bihar</div>
-      <div>Open daily — 10:00 AM to 8:00 PM</div>
       <div>© 2026 Tejvix</div>
     </div>
   </div>
 </footer>
 
-
-<div class="toast" id="toast"></div>
-
 <script>
-  // Relative paths — netlify.toml redirects /api/* to the serverless functions,
-  // so this works both locally (netlify dev) and once deployed on Netlify.
   const API_BASE = "/api";
-
   const params = new URLSearchParams(window.location.search);
   const salonSlug = params.get('salon');
+  const reviewTokenId = params.get('review');
 
   const directorySection = document.getElementById('directorySection');
   const salonSections = document.getElementById('salonSections');
+  const reviewSection = document.getElementById('reviewSection');
 
-  const form = document.getElementById('bookForm');
-  const bookMsg = document.getElementById('bookMsg');
-  const tokenResult = document.getElementById('tokenResult');
-  const tokenNumber = document.getElementById('tokenNumber');
-  const tokenSub = document.getElementById('tokenSub');
-  const toast = document.getElementById('toast');
+  let selectedServices = [];
+  let selectedStaffList = [];
+  let bookingType = 'walkin';
 
-  function showToast(text){
-    toast.textContent = text;
-    toast.classList.add('show');
-    setTimeout(()=> toast.classList.remove('show'), 3200);
+  // ---------- REVIEW VIEW ----------
+  function setupReviewView(){
+    directorySection.style.display = 'none';
+    salonSections.style.display = 'none';
+    reviewSection.style.display = '';
+
+    let rating = 0;
+    const stars = document.querySelectorAll('#starPicker span');
+    stars.forEach(star => {
+      star.addEventListener('click', () => {
+        rating = Number(star.dataset.v);
+        stars.forEach(s => s.classList.toggle('active', Number(s.dataset.v) <= rating));
+      });
+    });
+
+    document.getElementById('submitReview').addEventListener('click', async () => {
+      const msgEl = document.getElementById('reviewMsg');
+      if (!rating){ msgEl.textContent = "Please tap a star first."; msgEl.style.color = 'var(--danger)'; return; }
+      try{
+        const res = await fetch(`${API_BASE}/reviews`, {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ token_id: reviewTokenId, rating, comment: document.getElementById('reviewComment').value })
+        });
+        const data = await res.json();
+        if(!res.ok) throw new Error(data.error);
+        msgEl.textContent = "Thanks for your feedback!";
+        msgEl.style.color = 'var(--success)';
+      }catch(err){
+        msgEl.textContent = "Couldn't submit — please try again.";
+        msgEl.style.color = 'var(--danger)';
+        console.error(err);
+      }
+    });
   }
 
-  // ---------- DIRECTORY MODE (no ?salon= in the URL) ----------
+  // ---------- DIRECTORY VIEW ----------
   async function loadDirectory(){
     directorySection.style.display = '';
     salonSections.style.display = 'none';
-
     const cardsEl = document.getElementById('salonCards');
     try{
       const res = await fetch(`${API_BASE}/salons`);
       const data = await res.json();
       if(!data.salons || !data.salons.length){
-        cardsEl.innerHTML = `<div class="step"><p>No salons added yet.</p></div>`;
+        cardsEl.innerHTML = `<div class="card"><p>No salons added yet.</p></div>`;
         return;
       }
-      cardsEl.innerHTML = data.salons.map(s => `
-        <div class="step">
-          <h3>${s.name}</h3>
-          <p>${s.address || ''}</p>
-          ${s.phone ? `<p>${s.phone}</p>` : ''}
-          <div style="margin-top:14px;">
-            <a href="?salon=${encodeURIComponent(s.slug)}" class="btn-primary">View live queue & book →</a>
-          </div>
-        </div>
-      `).join('');
+      const cards = await Promise.all(data.salons.map(async s => {
+        let ratingHtml = '';
+        try{
+          const r = await fetch(`${API_BASE}/reviews?salon=${encodeURIComponent(s.slug)}`);
+          const rd = await r.json();
+          if (rd.count) ratingHtml = `<div class="rating-badge">★ ${rd.average} · ${rd.count} review${rd.count>1?'s':''}</div>`;
+        }catch{}
+        return `
+          <div class="card">
+            <h3>${s.name}</h3>
+            <p>${s.address || ''}</p>
+            ${s.phone ? `<p>${s.phone}</p>` : ''}
+            ${ratingHtml}
+            <div style="margin-top:14px;">
+              <a href="?salon=${encodeURIComponent(s.slug)}" class="btn-primary">View live queue & book →</a>
+            </div>
+          </div>`;
+      }));
+      cardsEl.innerHTML = cards.join('');
     }catch(err){
-      cardsEl.innerHTML = `<div class="step"><p>Couldn't load salons — check that the backend/functions are running.</p></div>`;
+      cardsEl.innerHTML = `<div class="card"><p>Couldn't load salons — check the backend/functions.</p></div>`;
       console.error(err);
     }
   }
 
-  // ---------- SALON MODE (?salon=slug in the URL) ----------
+  // ---------- SALON VIEW ----------
   function applySalonBranding(salon){
     document.title = `${salon.name} — Token & Queue Booking`;
     document.getElementById('salonEyebrow').textContent = salon.address || 'Local salon';
     document.getElementById('salonHeadline').textContent = `No more standing in line at ${salon.name}.`;
-    document.getElementById('salonLede').textContent = `Book your token at ${salon.name}, get an SMS update when your turn is close, and walk in only when it's actually time for your chair.`;
-    document.getElementById('heroBoardName').textContent = `${salon.name} — Today`;
-    document.getElementById('liveBoardName').textContent = `${salon.name} — Today`;
+    document.getElementById('salonLede').textContent = `Book your token at ${salon.name}, get an SMS update when your turn is close.`;
     document.getElementById('footerLogo').innerHTML = `${salon.name}<span>.</span>`;
-    document.getElementById('footerBlurb').textContent = `${salon.name} — ${salon.address || 'Muzaffarpur'}. Save your time with our token and queue system.`;
-    const footerRight = document.getElementById('footerRight');
-    footerRight.innerHTML = `
+    document.getElementById('footerBlurb').textContent = `${salon.name} — ${salon.address || 'Muzaffarpur'}.`;
+    document.getElementById('footerRight').innerHTML = `
       <div>${salon.address || ''}</div>
       ${salon.phone ? `<div>${salon.phone}</div>` : ''}
-      <div>© 2026 ${salon.name}</div>
-    `;
+      <div>© 2026 ${salon.name}</div>`;
   }
 
-  form && form.addEventListener('submit', async (e)=>{
+  async function loadServices(){
+    const sel = document.getElementById('fservice');
+    const listEl = document.getElementById('servicesList');
+    try{
+      const res = await fetch(`${API_BASE}/services?salon=${encodeURIComponent(salonSlug)}`);
+      const data = await res.json();
+      selectedServices = data.services || [];
+      sel.innerHTML = selectedServices.map(s => `<option value="${s.id}">${s.name} — ₹${s.price} (${s.duration_minutes} min)</option>`).join('');
+      listEl.innerHTML = selectedServices.map(s => `
+        <div class="svc">
+          <span>${s.name}<div class="meta">${s.duration_minutes} min</div></span>
+          <span class="price">₹${s.price}</span>
+        </div>`).join('') || '<p>No services listed yet.</p>';
+    }catch(err){
+      sel.innerHTML = `<option value="">Couldn't load services</option>`;
+      console.error(err);
+    }
+  }
+
+  async function loadStaffOptions(){
+    const sel = document.getElementById('fstaff');
+    const field = document.getElementById('staffField');
+    try{
+      const res = await fetch(`${API_BASE}/staff?salon=${encodeURIComponent(salonSlug)}`);
+      const data = await res.json();
+      selectedStaffList = data.staff || [];
+      if (selectedStaffList.length > 1){
+        sel.innerHTML = `<option value="">Any available</option>` + selectedStaffList.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+        field.style.display = '';
+      } else {
+        field.style.display = 'none';
+      }
+    }catch(err){ console.error(err); }
+  }
+
+  function populateTimeOptions(){
+    const sel = document.getElementById('ftime');
+    const options = [];
+    const now = new Date();
+    for (let h = 10; h <= 20; h++){
+      for (let m of [0, 30]){
+        if (h === 20 && m === 30) continue;
+        const slot = new Date(now);
+        slot.setHours(h, m, 0, 0);
+        if (slot > now){
+          const label = slot.toLocaleTimeString('en-IN', {hour:'numeric', minute:'2-digit', hour12:true});
+          options.push(`<option value="${slot.toISOString()}">${label}</option>`);
+        }
+      }
+    }
+    sel.innerHTML = options.join('') || `<option value="">No more slots today</option>`;
+  }
+
+  document.getElementById('walkinToggle').addEventListener('click', () => {
+    bookingType = 'walkin';
+    document.getElementById('walkinToggle').classList.add('active');
+    document.getElementById('apptToggle').classList.remove('active');
+    document.getElementById('timeField').style.display = 'none';
+  });
+  document.getElementById('apptToggle').addEventListener('click', () => {
+    bookingType = 'appointment';
+    document.getElementById('apptToggle').classList.add('active');
+    document.getElementById('walkinToggle').classList.remove('active');
+    document.getElementById('timeField').style.display = '';
+    populateTimeOptions();
+  });
+
+  document.getElementById('bookForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    const bookMsg = document.getElementById('bookMsg');
+    const tokenResult = document.getElementById('tokenResult');
     const name = document.getElementById('fname').value.trim();
     const phone = document.getElementById('fphone').value.trim();
-    const service = document.getElementById('fservice').value;
+    const serviceId = document.getElementById('fservice').value;
+    const staffId = document.getElementById('fstaff').value;
+    const scheduledAt = document.getElementById('ftime').value;
 
-    bookMsg.textContent = "Booking your token...";
+    bookMsg.textContent = "Booking...";
     bookMsg.className = "";
 
     try{
+      const payload = { salon: salonSlug, name, phone, service_id: serviceId, staff_id: staffId, booking_type: bookingType };
+      if (bookingType === 'appointment') payload.scheduled_at = scheduledAt;
+
       const res = await fetch(`${API_BASE}/book`, {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({salon: salonSlug, name, phone, service})
+        method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(payload)
       });
       const data = await res.json();
       if(!res.ok) throw new Error(data.error || "Something went wrong");
 
-      tokenNumber.textContent = data.token;
-      tokenSub.textContent = `${data.ahead} people are ahead of you. An SMS confirmation has been sent.`;
+      if (data.booking_type === 'appointment'){
+        const when = new Date(data.scheduled_at).toLocaleTimeString('en-IN', {hour:'numeric', minute:'2-digit', hour12:true});
+        document.getElementById('tokenNumber').textContent = when;
+        document.getElementById('tokenSub').textContent = `${data.service} — appointment confirmed.`;
+        document.getElementById('loyaltyNote').textContent = '';
+      } else {
+        document.getElementById('tokenNumber').textContent = data.token;
+        document.getElementById('tokenSub').textContent = `${data.ahead} ahead of you — about ${data.estimated_wait_minutes} min wait.`;
+        document.getElementById('loyaltyNote').textContent = data.loyalty_message || '';
+      }
       tokenResult.classList.add('show');
-      bookMsg.textContent = "Token confirmed! ✓";
+      bookMsg.textContent = "Confirmed! ✓";
       bookMsg.className = "ok";
-      form.reset();
+      e.target.reset();
       loadQueue();
     }catch(err){
-      bookMsg.textContent = "Couldn't reach the server — check that the backend/functions are running.";
+      bookMsg.textContent = "Couldn't reach the server.";
       bookMsg.className = "err";
       console.error(err);
     }
   });
 
   async function loadQueue(){
+    const boardsEl = document.getElementById('staffBoards');
     try{
       const res = await fetch(`${API_BASE}/queue?salon=${encodeURIComponent(salonSlug)}`);
       const data = await res.json();
-      if(!res.ok) throw new Error(data.error || "Salon not found");
+      if(!res.ok) throw new Error(data.error);
+      if (data.salon) applySalonBranding(data.salon);
 
-      if(data.salon) applySalonBranding(data.salon);
-
-      const nowServing = data.now_serving ? data.now_serving.token : "—";
-      document.getElementById('heroNowServing').textContent = nowServing;
-      document.getElementById('liveNowServing').textContent = nowServing;
-
-      const rows = data.waiting.map(item => `
-        <div class="qrow">
-          <span class="tok-mini">${item.token}</span>
-          <span>${item.name}</span>
-          <span class="wait">${item.service}</span>
-        </div>`).join('');
-
-      const emptyRow = `<div class="qrow"><span>No one waiting right now</span></div>`;
-      document.getElementById('heroQueueList').innerHTML = rows || emptyRow;
-      document.getElementById('liveQueueList').innerHTML = rows || emptyRow;
+      boardsEl.innerHTML = (data.queues || []).map(q => {
+        const rows = q.waiting.map(item => `
+          <div class="qrow">
+            <span class="tok-mini">${item.token}</span>
+            <span>${item.name}</span>
+            <span class="eta">~${item.estimated_wait_minutes} min</span>
+          </div>`).join('');
+        return `
+          <div class="staff-board">
+            <div class="staff-board-head">
+              <span class="name">${q.staff_name}</span>
+              <span class="live-dot">Live</span>
+            </div>
+            <div class="now-serving">
+              <div class="label">Now serving</div>
+              <div class="tok">${q.now_serving ? q.now_serving.token : '—'}</div>
+            </div>
+            <div class="queue-list">${rows || '<div class="qrow"><span>No one waiting</span></div>'}</div>
+          </div>`;
+      }).join('') || '<div class="card"><p>No staff set up yet.</p></div>';
     }catch(err){
-      document.getElementById('heroQueueList').innerHTML = `<div class="qrow"><span>Couldn't reach the server</span></div>`;
-      document.getElementById('liveQueueList').innerHTML = `<div class="qrow"><span>Couldn't reach the server</span></div>`;
+      boardsEl.innerHTML = `<div class="card"><p>Couldn't reach the server.</p></div>`;
       console.error(err);
     }
   }
 
   // ---------- Entry point ----------
-  if (salonSlug){
+  if (reviewTokenId){
+    setupReviewView();
+  } else if (salonSlug){
     directorySection.style.display = 'none';
     salonSections.style.display = '';
+    loadServices();
+    loadStaffOptions();
     loadQueue();
     setInterval(loadQueue, 5000);
   } else {

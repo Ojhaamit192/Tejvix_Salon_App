@@ -3,79 +3,80 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Staff Panel — Call Next Customer</title>
+<title>Staff Panel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #170F1D;
-    --bg-panel: #241531;
-    --bg-panel-2: #2E1B3D;
-    --line: #3A2749;
-    --gold: #C9A227;
-    --gold-soft: #E8C766;
-    --text: #F4EEE6;
-    --text-dim: #B9A9C4;
-    --success: #5EAE7C;
-    --danger: #D3695F;
+    --bg: #170F1D; --bg-panel: #241531; --bg-panel-2: #2E1B3D; --line: #3A2749;
+    --gold: #C9A227; --gold-soft: #E8C766; --text: #F4EEE6; --text-dim: #B9A9C4;
+    --success: #5EAE7C; --danger: #D3695F;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
-  body{
-    background:var(--bg); color:var(--text); font-family:'Inter', sans-serif;
-    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
-  }
+  body{ background:var(--bg); color:var(--text); font-family:'Inter', sans-serif; min-height:100vh; padding:24px; }
   h1,h2{font-family:'Fraunces', serif; font-weight:500;}
-  .card{
-    background:var(--bg-panel); border:1px solid var(--line); border-radius:18px;
-    padding:32px; max-width:440px; width:100%; text-align:center;
-  }
-  .salon-name{font-size:1.2rem; color:var(--gold-soft); margin-bottom:4px;}
+  .wrap{max-width:520px; margin:0 auto;}
+  .card{ background:var(--bg-panel); border:1px solid var(--line); border-radius:18px; padding:28px; margin-bottom:16px; }
+  .salon-name{font-size:1.2rem; color:var(--gold-soft); margin-bottom:4px; text-align:center;}
   .label{color:var(--text-dim); font-size:0.85rem; margin-bottom:6px;}
-  .now-serving{
-    background:linear-gradient(135deg, var(--bg-panel-2), var(--bg-panel));
-    border:1px solid var(--line); border-radius:14px; padding:28px; margin:20px 0;
-  }
-  .tok{font-family:'Fraunces',serif; font-size:3.2rem; color:var(--gold-soft);}
-  .waiting-count{color:var(--text-dim); font-size:0.95rem; margin-bottom:20px;}
-  input{
-    width:100%; background:var(--bg); border:1px solid var(--line); border-radius:8px;
-    padding:14px; color:var(--text); font-size:1.4rem; text-align:center; letter-spacing:4px;
-    margin-bottom:14px;
-  }
-  button{
-    width:100%; background:var(--gold); color:#231407; padding:18px; border-radius:10px;
-    font-weight:700; font-size:1.1rem; border:none; cursor:pointer;
-  }
-  button:hover{background:var(--gold-soft);}
+  select, input{ width:100%; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:12px; color:var(--text); font-size:1rem; margin-bottom:12px; }
+  .now-serving{ background:linear-gradient(135deg, var(--bg-panel-2), var(--bg-panel)); border:1px solid var(--line); border-radius:14px; padding:24px; margin:16px 0; text-align:center; }
+  .tok{font-family:'Fraunces',serif; font-size:2.8rem; color:var(--gold-soft);}
+  .waiting-count{color:var(--text-dim); font-size:0.9rem; margin-bottom:16px; text-align:center;}
+  button{ width:100%; padding:16px; border-radius:10px; font-weight:700; font-size:1rem; border:none; cursor:pointer; margin-bottom:10px; }
+  .btn-primary{background:var(--gold); color:#231407;}
+  .btn-primary:hover{background:var(--gold-soft);}
+  .btn-danger{background:var(--bg); border:1px solid var(--danger); color:var(--danger);}
+  .btn-secondary{background:var(--bg); border:1px solid var(--line); color:var(--text);}
   button:disabled{opacity:0.5; cursor:not-allowed;}
-  #msg{font-size:0.9rem; margin-top:14px; min-height:20px;}
-  #msg.ok{color:var(--success);}
-  #msg.err{color:var(--danger);}
+  #msg{font-size:0.9rem; margin-top:8px; text-align:center; min-height:20px;}
+  #msg.ok{color:var(--success);} #msg.err{color:var(--danger);}
   #pinGate{display:flex; flex-direction:column; gap:10px;}
+  .appt-row{display:flex; justify-content:space-between; align-items:center; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin-bottom:8px; font-size:0.88rem;}
+  .appt-row button{width:auto; padding:6px 12px; margin:0; font-size:0.8rem;}
+  .stat-row{display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--line); font-size:0.92rem;}
+  .stat-row:last-child{border-bottom:none;}
+  .stat-row .val{color:var(--gold-soft); font-weight:600;}
 </style>
 </head>
 <body>
+<div class="wrap">
+  <div class="card">
+    <div class="label" style="text-align:center;">Staff Panel</div>
+    <h1 class="salon-name" id="salonName">Loading...</h1>
 
-<div class="card">
-  <div class="label">Staff Panel</div>
-  <h1 class="salon-name" id="salonName">Loading...</h1>
-
-  <div id="pinGate">
-    <div class="label" style="margin-top:10px;">Enter staff PIN to continue</div>
-    <input type="password" id="pinInput" inputmode="numeric" placeholder="••••" maxlength="8">
-    <button id="unlockBtn">Unlock</button>
-  </div>
-
-  <div id="mainPanel" style="display:none;">
-    <div class="now-serving">
-      <div class="label">Now serving</div>
-      <div class="tok" id="nowServing">—</div>
+    <div id="pinGate">
+      <div class="label" style="margin-top:10px;">Enter staff PIN</div>
+      <input type="password" id="pinInput" inputmode="numeric" placeholder="••••" maxlength="8">
+      <button class="btn-primary" id="unlockBtn">Unlock</button>
     </div>
-    <div class="waiting-count" id="waitingCount">— waiting</div>
-    <button id="nextBtn">Call Next Customer →</button>
+
+    <div id="mainPanel" style="display:none;">
+      <div class="label">Managing queue for</div>
+      <select id="staffSelect"></select>
+
+      <div class="now-serving">
+        <div class="label">Now serving</div>
+        <div class="tok" id="nowServing">—</div>
+      </div>
+      <div class="waiting-count" id="waitingCount">— waiting</div>
+
+      <button class="btn-primary" id="doneBtn">Done — Call Next Customer →</button>
+      <button class="btn-danger" id="noShowBtn">Skip (No-Show) — Call Next</button>
+
+      <div id="msg"></div>
+    </div>
   </div>
 
-  <div id="msg"></div>
+  <div class="card" id="apptCard" style="display:none;">
+    <h2 style="font-size:1rem; margin-bottom:12px;">Upcoming appointments today</h2>
+    <div id="apptList"><p style="color:var(--text-dim); font-size:0.9rem;">Loading...</p></div>
+  </div>
+
+  <div class="card" id="statsCard" style="display:none;">
+    <h2 style="font-size:1rem; margin-bottom:12px;">Today's summary</h2>
+    <div id="statsList"></div>
+  </div>
 </div>
 
 <script>
@@ -83,16 +84,20 @@
   const params = new URLSearchParams(window.location.search);
   const salonSlug = params.get('salon');
   let pin = null;
+  let staffList = [];
 
   const salonNameEl = document.getElementById('salonName');
   const pinGate = document.getElementById('pinGate');
   const pinInput = document.getElementById('pinInput');
-  const unlockBtn = document.getElementById('unlockBtn');
   const mainPanel = document.getElementById('mainPanel');
+  const staffSelect = document.getElementById('staffSelect');
   const nowServingEl = document.getElementById('nowServing');
   const waitingCountEl = document.getElementById('waitingCount');
-  const nextBtn = document.getElementById('nextBtn');
   const msgEl = document.getElementById('msg');
+  const apptCard = document.getElementById('apptCard');
+  const apptList = document.getElementById('apptList');
+  const statsCard = document.getElementById('statsCard');
+  const statsList = document.getElementById('statsList');
 
   if (!salonSlug){
     salonNameEl.textContent = "No salon specified";
@@ -102,77 +107,138 @@
   }
 
   async function refreshStatus(){
-    if (!salonSlug) return;
+    if (!salonSlug || !staffSelect.value) return;
     try{
       const res = await fetch(`${API_BASE}/queue?salon=${encodeURIComponent(salonSlug)}`);
       const data = await res.json();
       if(!res.ok) throw new Error(data.error);
       if(data.salon) salonNameEl.textContent = data.salon.name;
-      nowServingEl.textContent = data.now_serving ? data.now_serving.token : "—";
-      waitingCountEl.textContent = `${data.waiting.length} waiting`;
-    }catch(err){
-      console.error(err);
-    }
+      const mine = (data.queues || []).find(q => q.staff_id === staffSelect.value);
+      if (mine){
+        nowServingEl.textContent = mine.now_serving ? mine.now_serving.token : "—";
+        waitingCountEl.textContent = `${mine.waiting.length} waiting`;
+      }
+    }catch(err){ console.error(err); }
   }
 
-  unlockBtn.addEventListener('click', () => {
-    if (!pinInput.value.trim()){
-      msgEl.textContent = "Enter your PIN first";
+  async function loadAppointments(){
+    try{
+      const res = await fetch(`${API_BASE}/appointments?salon=${encodeURIComponent(salonSlug)}&pin=${encodeURIComponent(pin)}`);
+      const data = await res.json();
+      if(!res.ok){ apptCard.style.display = 'none'; return; }
+      apptCard.style.display = '';
+      if (!data.appointments.length){
+        apptList.innerHTML = `<p style="color:var(--text-dim); font-size:0.9rem;">No appointments booked for today.</p>`;
+        return;
+      }
+      apptList.innerHTML = data.appointments.map(a => {
+        const when = new Date(a.scheduled_at).toLocaleTimeString('en-IN', {hour:'numeric', minute:'2-digit', hour12:true});
+        return `
+          <div class="appt-row">
+            <span>${when} — ${a.name} (${a.service}${a.staff ? ', ' + a.staff : ''})</span>
+            <button class="btn-secondary" onclick="checkIn('${a.id}')">Check In</button>
+          </div>`;
+      }).join('');
+    }catch(err){ console.error(err); }
+  }
+
+  window.checkIn = async function(tokenId){
+    try{
+      const res = await fetch(`${API_BASE}/checkin`, {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ salon: salonSlug, pin, token_id: tokenId })
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error);
+      msgEl.textContent = `Checked in as ${data.token}`;
+      msgEl.className = 'ok';
+      loadAppointments();
+      refreshStatus();
+    }catch(err){
+      msgEl.textContent = "Couldn't check in.";
       msgEl.className = 'err';
-      return;
+      console.error(err);
+    }
+  };
+
+  async function loadStats(){
+    try{
+      const res = await fetch(`${API_BASE}/analytics?salon=${encodeURIComponent(salonSlug)}&pin=${encodeURIComponent(pin)}`);
+      const data = await res.json();
+      if(!res.ok){ statsCard.style.display = 'none'; return; }
+      statsCard.style.display = '';
+      statsList.innerHTML = `
+        <div class="stat-row"><span>Total bookings today</span><span class="val">${data.total_bookings}</span></div>
+        <div class="stat-row"><span>Served</span><span class="val">${data.served}</span></div>
+        <div class="stat-row"><span>No-shows</span><span class="val">${data.no_shows}</span></div>
+        <div class="stat-row"><span>Popular service</span><span class="val">${data.popular_service ? data.popular_service.name : '—'}</span></div>
+        <div class="stat-row"><span>Busiest hour</span><span class="val">${data.busiest_hour || '—'}</span></div>
+        <div class="stat-row"><span>Est. revenue</span><span class="val">₹${data.estimated_revenue}</span></div>
+      `;
+    }catch(err){ console.error(err); }
+  }
+
+  document.getElementById('unlockBtn').addEventListener('click', async () => {
+    if (!pinInput.value.trim()){
+      msgEl.textContent = "Enter your PIN first"; msgEl.className = 'err'; return;
     }
     pin = pinInput.value.trim();
+
+    try{
+      const res = await fetch(`${API_BASE}/staff?salon=${encodeURIComponent(salonSlug)}`);
+      const data = await res.json();
+      staffList = data.staff || [];
+      if (!staffList.length){
+        msgEl.textContent = "No staff set up for this salon yet."; msgEl.className = 'err'; return;
+      }
+      staffSelect.innerHTML = staffList.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    }catch(err){
+      msgEl.textContent = "Couldn't load staff list."; msgEl.className = 'err'; return;
+    }
+
     pinGate.style.display = 'none';
     mainPanel.style.display = 'block';
     msgEl.textContent = '';
     refreshStatus();
+    loadAppointments();
+    loadStats();
   });
 
-  nextBtn.addEventListener('click', async () => {
-    nextBtn.disabled = true;
-    nextBtn.textContent = "Calling...";
-    msgEl.textContent = '';
+  staffSelect.addEventListener('change', refreshStatus);
 
+  async function callNext(outcome){
+    const btns = [document.getElementById('doneBtn'), document.getElementById('noShowBtn')];
+    btns.forEach(b => b.disabled = true);
+    msgEl.textContent = '';
     try{
       const res = await fetch(`${API_BASE}/next`, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ salon: salonSlug, pin })
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ salon: salonSlug, staff_id: staffSelect.value, pin, outcome })
       });
       const data = await res.json();
-
       if (res.status === 401){
-        msgEl.textContent = "Incorrect PIN — locking again.";
-        msgEl.className = 'err';
-        mainPanel.style.display = 'none';
-        pinGate.style.display = 'flex';
-        pinInput.value = '';
-        pin = null;
+        msgEl.textContent = "Incorrect PIN — locking again."; msgEl.className = 'err';
+        mainPanel.style.display = 'none'; pinGate.style.display = 'flex'; pinInput.value = ''; pin = null;
         return;
       }
       if(!res.ok) throw new Error(data.error || "Something went wrong");
-
-      if (data.message === "Queue is empty"){
-        msgEl.textContent = "Queue is empty — no one waiting.";
-        msgEl.className = 'ok';
-      } else {
-        msgEl.textContent = `Called ${data.now_serving}. SMS sent.`;
-        msgEl.className = 'ok';
-      }
+      msgEl.textContent = data.message === "Queue is empty" ? "Queue is empty." : `Called ${data.now_serving}. SMS sent.`;
+      msgEl.className = 'ok';
       refreshStatus();
+      loadStats();
     }catch(err){
-      msgEl.textContent = "Couldn't reach the server — check that the backend/functions are running.";
+      msgEl.textContent = "Couldn't reach the server.";
       msgEl.className = 'err';
       console.error(err);
     }finally{
-      nextBtn.disabled = false;
-      nextBtn.textContent = "Call Next Customer →";
+      btns.forEach(b => b.disabled = false);
     }
-  });
+  }
 
-  refreshStatus();
-  setInterval(refreshStatus, 5000);
+  document.getElementById('doneBtn').addEventListener('click', () => callNext('done'));
+  document.getElementById('noShowBtn').addEventListener('click', () => callNext('no_show'));
+
+  setInterval(() => { if (pin) { refreshStatus(); loadAppointments(); } }, 5000);
 </script>
-
 </body>
 </html>

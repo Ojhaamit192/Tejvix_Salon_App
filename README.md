@@ -126,3 +126,57 @@ staff panel — no code changes needed.
 - The queue board polls every 5 seconds rather than updating instantly.
   Supabase's Realtime feature could push updates the moment they happen —
   a good next upgrade once the basics are working.
+
+---
+
+## Major update: Staff, Services, Appointments, Reviews, Loyalty, Analytics
+
+This platform now includes:
+
+- **Estimated wait time** — each service has a duration; the queue board shows
+  "~X min" per person waiting, based on the services ahead of them.
+- **Multiple barbers (parallel queues)** — each salon can have several staff
+  members, each with their own independent queue. The booking form lets a
+  customer pick a barber (or "Any available").
+- **Advance appointment booking** — customers can toggle "Book for later"
+  and pick a time slot today; staff check them in from the admin panel when
+  they arrive, which converts them into a normal queue token.
+- **No-show handling** — the staff panel has two buttons: "Done — Call Next"
+  and "Skip (No-Show) — Call Next", so a customer who doesn't show up
+  doesn't block the queue.
+- **Owner analytics** — the staff panel shows today's total bookings, how
+  many were served vs no-shows, the most popular service, the busiest hour,
+  and estimated revenue.
+- **Ratings & reviews** — after a customer is marked "Done", they get an SMS
+  with a link (`index.html?review=<token_id>`) to rate their visit 1-5 stars.
+  Average ratings show up as a badge on each salon's card in the directory.
+- **Loyalty rewards** — every 5th visit (by phone number) is flagged in the
+  booking confirmation SMS ("This is your visit #5 — ask staff about your
+  reward!").
+
+### Extra setup step: run the migration
+
+After `schema.sql`, also run **`supabase/migration_2_staff_services_reviews.sql`**
+in Supabase's SQL Editor. It adds the `services`, `staff`, and `reviews`
+tables, extends `tokens` with the new columns, and seeds 6 services + 2
+staff members for each of the two demo salons. It's safe to re-run — it
+won't duplicate rows.
+
+### New functions
+
+`services.js`, `staff.js`, `reviews.js`, `analytics.js`, `checkin.js`,
+`appointments.js` — all follow the same `/api/*` pattern as before, no
+extra Netlify configuration needed.
+
+### Simplifications worth knowing about (this is still demo-grade)
+
+- Appointment slots are only offered for "later today", not future dates —
+  extending this to multi-day booking just means giving the time picker a
+  date component too.
+- No-show detection is manual (staff taps the button) rather than automatic
+  after a timeout — automatic detection would need a scheduled/cron
+  function, which Netlify supports (Scheduled Functions) as a next step.
+- The review SMS just points customers to a link; there's no reminder if
+  they don't tap it.
+- Analytics are simple aggregates computed on the fly — fine at this scale,
+  but a growing salon chain would eventually want a proper reporting table.
