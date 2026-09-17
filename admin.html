@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Staff Panel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="icon" type="image/png" href="assets/logo-icon.png">
 <link rel="manifest" href="manifest.json">
@@ -113,6 +114,12 @@
     pinGate.style.display = 'none';
     msgEl.textContent = "Open this page as admin.html?salon=your-salon-slug";
     msgEl.className = 'err';
+  } else {
+    // Fetch and show the salon name right away (no PIN needed for this)
+    fetch(`${API_BASE}/queue?salon=${encodeURIComponent(salonSlug)}`)
+      .then(res => res.json())
+      .then(data => { if (data.salon) salonNameEl.textContent = data.salon.name; })
+      .catch(() => { salonNameEl.textContent = "Staff Panel"; });
   }
 
   async function refreshStatus(){
