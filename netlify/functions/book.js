@@ -42,7 +42,7 @@ exports.handler = async (event) => {
 
   const { data: salon, error: salonErr } = await supabase
     .from("salons")
-    .select("id, name")
+    .select("id, name, address, upi_id, payment_qr_url")
     .eq("slug", salonSlug)
     .single();
   if (salonErr || !salon) {
@@ -51,7 +51,7 @@ exports.handler = async (event) => {
 
   const { data: service, error: serviceErr } = await supabase
     .from("services")
-    .select("id, name, duration_minutes")
+    .select("id, name, duration_minutes, price")
     .eq("id", serviceId)
     .eq("salon_id", salon.id)
     .single();
@@ -76,6 +76,11 @@ exports.handler = async (event) => {
 
   // ---------- Appointment booking (scheduled for later, not in live queue yet) ----------
   if (bookingType === "appointment") {
+    // If the salon has a UPI ID or a printed QR code on file, we'll ask the
+    // customer to pay via that and self-confirm ("I have completed the
+    // payment"). Otherwise no payment step is shown.
+    const paymentNeeded = !!(salon.upi_id || salon.payment_qr_url);
+
     const { data: inserted, error: insertErr } = await supabase
       .from("tokens")
       .insert({
@@ -89,6 +94,7 @@ exports.handler = async (event) => {
         status: "scheduled",
         booking_type: "appointment",
         scheduled_at: scheduledAt,
+        payment_status: paymentNeeded ? "pending" : "not_required",
       })
       .select("id")
       .single();
@@ -97,13 +103,24 @@ exports.handler = async (event) => {
       return { statusCode: 500, headers: CORS_HEADERS, body: JSON.stringify({ error: insertErr.message }) };
     }
 
-    const when = new Date(scheduledAt).toLocaleString("en-IN", { hour: "numeric", minute: "2-digit", hour12: true });
+    const when = new Date(scheduledAt).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", hour12: true });
     await sendSms(phone, `${salon.name}: Your appointment for ${service.name} at ${when} is booked. See you then!`);
 
     return {
       statusCode: 200,
       headers: CORS_HEADERS,
-      body: JSON.stringify({ booking_type: "appointment", scheduled_at: scheduledAt, service: service.name }),
+      body: JSON.stringify({
+        booking_type: "appointment",
+        booking_id: inserted.id,
+        scheduled_at: scheduledAt,
+        service: service.name,
+        amount: service.price,
+        payment_needed: paymentNeeded,
+        upi_id: salon.upi_id || null,
+        payment_qr_url: salon.payment_qr_url || null,
+        salon_name: salon.name,
+        salon_address: salon.address,
+      }),
     };
   }
 

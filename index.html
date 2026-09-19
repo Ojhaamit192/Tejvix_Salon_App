@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tejvix — Local Salon Queue Platform</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="icon" type="image/png" href="assets/logo-icon.png">
 <link rel="manifest" href="manifest.json">
@@ -222,9 +221,16 @@
               <label for="fstaff">Barber</label>
               <select id="fstaff"><option value="">Any available</option></select>
             </div>
+            <div class="field" id="dateField" style="display:none;">
+              <label for="fdate">Date</label>
+              <select id="fdate"></select>
+            </div>
             <div class="field" id="timeField" style="display:none;">
-              <label for="ftime">Time today</label>
+              <label for="ftime">Time</label>
               <select id="ftime"></select>
+            </div>
+            <div class="field" id="paymentNote" style="display:none;">
+              <p style="color:var(--text-dim); font-size:0.85rem;">💳 Advance booking requires payment via Razorpay to confirm your slot.</p>
             </div>
             <button type="submit" class="btn-primary">Get Token</button>
             <div id="bookMsg"></div>
@@ -240,6 +246,27 @@
             <div class="label" style="color:var(--text-dim); font-size:0.85rem; margin-bottom:10px;">Pay for your service (optional)</div>
             <img id="paymentQr" src="" alt="Payment QR" style="width:160px; height:160px; border-radius:10px; background:#fff; padding:8px;">
             <div style="color:var(--text-dim); font-size:0.8rem; margin-top:8px;">Scan with any UPI app — GPay, PhonePe, Paytm, etc.</div>
+          </div>
+        </div>
+
+        <!-- Step 2 of advance booking: scan & self-confirm payment -->
+        <div class="token-result" id="apptPaymentStep" style="display:none;">
+          <div class="label" style="color:var(--text-dim); font-size:0.85rem;">Scan to pay</div>
+          <img id="apptQr" src="" alt="Payment QR" style="width:180px; height:180px; border-radius:10px; background:#fff; padding:10px; margin:10px 0;">
+          <div class="sub" id="apptAmount"></div>
+          <div style="color:var(--text-dim); font-size:0.8rem; margin:10px 0 16px;">Scan with any UPI app — GPay, PhonePe, Paytm, etc. — then confirm below.</div>
+          <button type="button" class="btn-primary" id="apptPaidBtn">I have completed the payment ✓</button>
+          <div id="apptPaidMsg" style="margin-top:10px; font-size:0.9rem;"></div>
+        </div>
+
+        <!-- Step 3: invoice + notify salon -->
+        <div class="token-result" id="apptInvoice" style="display:none; text-align:left;">
+          <div class="label" style="color:var(--text-dim); font-size:0.85rem; text-align:center;">Booking Confirmed ✓</div>
+          <h3 style="text-align:center; margin:8px 0 16px;">Invoice</h3>
+          <div id="invoiceDetails" style="font-size:0.92rem; line-height:1.9;"></div>
+          <div style="display:flex; gap:10px; margin-top:18px; flex-wrap:wrap;">
+            <button type="button" class="btn-ghost" onclick="window.print()" style="flex:1;">🖨️ Print / Save</button>
+            <a href="#" id="whatsappNotifyBtn" target="_blank" class="btn-primary" style="flex:1; text-align:center;">📲 Notify Salon</a>
           </div>
         </div>
       </div>
@@ -275,9 +302,6 @@
         &nbsp;·&nbsp;
         <a href="terms.html" style="color:var(--gold-soft);">Terms &amp; Conditions</a>
       </p>
-      <p style="margin-top:10px; font-size:0.85rem;">
-        <a href="https://wa.me/918709837745?text=Hi%20Tejvix%2C%20I%20have%20a%20question." target="_blank" style="color:var(--gold-soft);">💬 Chat with us on WhatsApp</a>
-      </p>
     </div>
     <div class="foot-right" id="footerRight">
       <div>Muzaffarpur, Bihar</div>
@@ -286,6 +310,7 @@
   </div>
 </footer>
 
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
   const API_BASE = "/api";
   const params = new URLSearchParams(window.location.search);
@@ -500,36 +525,58 @@
     }catch(err){ console.error(err); }
   }
 
-  function populateTimeOptions(){
-    const sel = document.getElementById('ftime');
+  function populateDateOptions(){
+    const sel = document.getElementById('fdate');
     const options = [];
+    for (let i = 0; i < 7; i++){
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+      const label = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : d.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short' });
+      options.push(`<option value="${d.toISOString().slice(0,10)}">${label}</option>`);
+    }
+    sel.innerHTML = options.join('');
+    populateTimeOptions();
+  }
+
+  function populateTimeOptions(){
+    const dateSel = document.getElementById('fdate');
+    const sel = document.getElementById('ftime');
+    const selectedDate = dateSel.value || new Date().toISOString().slice(0,10);
+    const isToday = selectedDate === new Date().toISOString().slice(0,10);
     const now = new Date();
+    const options = [];
     for (let h = 10; h <= 20; h++){
       for (let m of [0, 30]){
         if (h === 20 && m === 30) continue;
-        const slot = new Date(now);
+        const slot = new Date(selectedDate + 'T00:00:00');
         slot.setHours(h, m, 0, 0);
-        if (slot > now){
+        if (!isToday || slot > now){
           const label = slot.toLocaleTimeString('en-IN', {hour:'numeric', minute:'2-digit', hour12:true});
           options.push(`<option value="${slot.toISOString()}">${label}</option>`);
         }
       }
     }
-    sel.innerHTML = options.join('') || `<option value="">No more slots today</option>`;
+    sel.innerHTML = options.join('') || `<option value="">No more slots that day</option>`;
   }
+
+  document.getElementById('fdate').addEventListener('change', populateTimeOptions);
 
   document.getElementById('walkinToggle').addEventListener('click', () => {
     bookingType = 'walkin';
     document.getElementById('walkinToggle').classList.add('active');
     document.getElementById('apptToggle').classList.remove('active');
+    document.getElementById('dateField').style.display = 'none';
     document.getElementById('timeField').style.display = 'none';
+    document.getElementById('paymentNote').style.display = 'none';
   });
   document.getElementById('apptToggle').addEventListener('click', () => {
     bookingType = 'appointment';
     document.getElementById('apptToggle').classList.add('active');
     document.getElementById('walkinToggle').classList.remove('active');
+    document.getElementById('dateField').style.display = '';
     document.getElementById('timeField').style.display = '';
-    populateTimeOptions();
+    document.getElementById('paymentNote').style.display = '';
+    populateDateOptions();
   });
 
   document.getElementById('bookForm').addEventListener('submit', async (e) => {
@@ -542,29 +589,25 @@
     const staffId = document.getElementById('fstaff').value;
     const scheduledAt = document.getElementById('ftime').value;
 
+    if (bookingType === 'appointment'){
+      startUpiClaimBooking({ name, phone, serviceId, staffId, scheduledAt });
+      return;
+    }
+
     bookMsg.textContent = "Booking...";
     bookMsg.className = "";
 
     try{
-      const payload = { salon: salonSlug, name, phone, service_id: serviceId, staff_id: staffId, booking_type: bookingType };
-      if (bookingType === 'appointment') payload.scheduled_at = scheduledAt;
-
+      const payload = { salon: salonSlug, name, phone, service_id: serviceId, staff_id: staffId, booking_type: 'walkin' };
       const res = await fetch(`${API_BASE}/book`, {
         method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(payload)
       });
       const data = await res.json();
       if(!res.ok) throw new Error(data.error || "Something went wrong");
 
-      if (data.booking_type === 'appointment'){
-        const when = new Date(data.scheduled_at).toLocaleTimeString('en-IN', {hour:'numeric', minute:'2-digit', hour12:true});
-        document.getElementById('tokenNumber').textContent = when;
-        document.getElementById('tokenSub').textContent = `${data.service} — appointment confirmed.`;
-        document.getElementById('loyaltyNote').textContent = '';
-      } else {
-        document.getElementById('tokenNumber').textContent = data.token;
-        document.getElementById('tokenSub').textContent = `${data.ahead} ahead of you — about ${data.estimated_wait_minutes} min wait.`;
-        document.getElementById('loyaltyNote').textContent = data.loyalty_message || '';
-      }
+      document.getElementById('tokenNumber').textContent = data.token;
+      document.getElementById('tokenSub').textContent = `${data.ahead} ahead of you — about ${data.estimated_wait_minutes} min wait.`;
+      document.getElementById('loyaltyNote').textContent = data.loyalty_message || '';
       tokenResult.classList.add('show');
       showPaymentQr(serviceId);
       bookMsg.textContent = "Confirmed! ✓";
@@ -577,6 +620,204 @@
       console.error(err);
     }
   });
+
+  async function startUpiClaimBooking({ name, phone, serviceId, staffId, scheduledAt }){
+    const bookMsg = document.getElementById('bookMsg');
+
+    if (!name || !phone){
+      bookMsg.textContent = "Please enter your name and mobile number."; bookMsg.className = "err"; return;
+    }
+    if (!scheduledAt){
+      bookMsg.textContent = "Please choose a date and time."; bookMsg.className = "err"; return;
+    }
+    const svc = selectedServices.find(s => s.id === serviceId);
+    if (!svc){
+      bookMsg.textContent = "Please choose a service."; bookMsg.className = "err"; return;
+    }
+
+    bookMsg.textContent = "Booking your slot...";
+    bookMsg.className = "";
+
+    try{
+      const res = await fetch(`${API_BASE}/book`, {
+        method: "POST", headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ salon: salonSlug, name, phone, service_id: serviceId, staff_id: staffId, booking_type: 'appointment', scheduled_at: scheduledAt })
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || "Something went wrong");
+
+      bookMsg.textContent = "Slot reserved! ✓";
+      bookMsg.className = "ok";
+      document.getElementById('tokenResult').classList.remove('show');
+
+      const invoiceData = { ...data, name, phone };
+
+      if (data.payment_needed){
+        showApptPaymentStep(invoiceData);
+      } else {
+        showInvoice(invoiceData, 'Not required');
+      }
+      loadQueue();
+    }catch(err){
+      bookMsg.textContent = "Couldn't reach the server.";
+      bookMsg.className = "err";
+      console.error(err);
+    }
+  }
+
+  function showApptPaymentStep(invoiceData){
+    const section = document.getElementById('apptPaymentStep');
+    const img = document.getElementById('apptQr');
+    const amountEl = document.getElementById('apptAmount');
+
+    if (invoiceData.payment_qr_url){
+      img.src = invoiceData.payment_qr_url;
+    } else if (invoiceData.upi_id){
+      const upiUri = `upi://pay?pa=${encodeURIComponent(invoiceData.upi_id)}&pn=${encodeURIComponent(invoiceData.salon_name)}&am=${invoiceData.amount}&cu=INR`;
+      img.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiUri)}`;
+    }
+    amountEl.textContent = `Amount: ₹${invoiceData.amount}`;
+    section.classList.add('show');
+    section.style.display = 'block';
+
+    const paidBtn = document.getElementById('apptPaidBtn');
+    const paidMsg = document.getElementById('apptPaidMsg');
+    paidBtn.onclick = async () => {
+      paidBtn.disabled = true;
+      paidBtn.textContent = "Confirming...";
+      try{
+        const res = await fetch(`${API_BASE}/mark-payment-claimed`, {
+          method: "POST", headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ token_id: invoiceData.booking_id })
+        });
+        const result = await res.json();
+        if(!res.ok) throw new Error(result.error || "Couldn't confirm payment");
+
+        section.style.display = 'none';
+        showInvoice(invoiceData, 'Paid via UPI (self-confirmed)');
+      }catch(err){
+        paidMsg.textContent = "Couldn't confirm — please try again.";
+        paidMsg.style.color = 'var(--danger)';
+        paidBtn.disabled = false;
+        paidBtn.textContent = "I have completed the payment ✓";
+        console.error(err);
+      }
+    };
+  }
+
+  function showInvoice(invoiceData, paymentLabel){
+    const when = new Date(invoiceData.scheduled_at).toLocaleString('en-IN', { day:'numeric', month:'short', hour:'numeric', minute:'2-digit', hour12:true });
+    const invoiceDetails = document.getElementById('invoiceDetails');
+    invoiceDetails.innerHTML = `
+      <div><strong>Salon:</strong> ${invoiceData.salon_name}</div>
+      <div><strong>Customer:</strong> ${invoiceData.name} (${invoiceData.phone})</div>
+      <div><strong>Service:</strong> ${invoiceData.service}</div>
+      <div><strong>Amount:</strong> ₹${invoiceData.amount}</div>
+      <div><strong>Date & time:</strong> ${when}</div>
+      <div><strong>Payment:</strong> ${paymentLabel}</div>
+      <div><strong>Booking ref:</strong> ${invoiceData.booking_id.slice(0,8)}</div>
+    `;
+    const invoiceSection = document.getElementById('apptInvoice');
+    invoiceSection.style.display = 'block';
+
+    if (currentSalon && currentSalon.phone){
+      const digits = currentSalon.phone.replace(/[^0-9]/g, '');
+      const msg = `New appointment booked:\n${invoiceData.name} (${invoiceData.phone})\nService: ${invoiceData.service} — ₹${invoiceData.amount}\nWhen: ${when}\nPayment: ${paymentLabel}`;
+      const waLink = `https://wa.me/${digits}?text=${encodeURIComponent(msg)}`;
+      document.getElementById('whatsappNotifyBtn').href = waLink;
+      // Best-effort auto-open — still within the same click's task, but some
+      // browsers may block it; the visible button below is the reliable fallback.
+      try{ window.open(waLink, '_blank'); }catch{}
+    } else {
+      document.getElementById('whatsappNotifyBtn').style.display = 'none';
+    }
+  }
+
+  async function startRazorpayBooking({ name, phone, serviceId, staffId, scheduledAt }){
+    const bookMsg = document.getElementById('bookMsg');
+    const tokenResult = document.getElementById('tokenResult');
+
+    if (!name || !phone){
+      bookMsg.textContent = "Please enter your name and mobile number."; bookMsg.className = "err"; return;
+    }
+    if (!scheduledAt){
+      bookMsg.textContent = "Please choose a date and time."; bookMsg.className = "err"; return;
+    }
+    const svc = selectedServices.find(s => s.id === serviceId);
+    if (!svc){
+      bookMsg.textContent = "Please choose a service."; bookMsg.className = "err"; return;
+    }
+    if (typeof Razorpay === 'undefined'){
+      bookMsg.textContent = "Payment system failed to load — check your connection."; bookMsg.className = "err"; return;
+    }
+
+    bookMsg.textContent = "Preparing payment...";
+    bookMsg.className = "";
+
+    try{
+      const orderRes = await fetch(`${API_BASE}/create-razorpay-order`, {
+        method: "POST", headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ amount: svc.price })
+      });
+      const order = await orderRes.json();
+      if (!orderRes.ok) throw new Error(order.error || "Couldn't start payment");
+
+      const rzp = new Razorpay({
+        key: order.key_id,
+        amount: order.amount,
+        currency: order.currency,
+        order_id: order.order_id,
+        name: currentSalon ? currentSalon.name : 'Tejvix Salon',
+        description: `${svc.name} appointment`,
+        prefill: { name, contact: phone },
+        theme: { color: (currentSalon && currentSalon.brand_color) || '#FF6A00' },
+        handler: async function(response){
+          bookMsg.textContent = "Verifying payment...";
+          try{
+            const verifyRes = await fetch(`${API_BASE}/verify-razorpay-payment`, {
+              method: "POST", headers: {"Content-Type":"application/json"},
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                salon: salonSlug, name, phone, service_id: serviceId, staff_id: staffId, scheduled_at: scheduledAt,
+              }),
+            });
+            const result = await verifyRes.json();
+            if (!verifyRes.ok) throw new Error(result.error || "Payment verification failed");
+
+            const when = new Date(result.scheduled_at).toLocaleString('en-IN', {day:'numeric', month:'short', hour:'numeric', minute:'2-digit', hour12:true});
+            document.getElementById('tokenNumber').textContent = '✓';
+            document.getElementById('tokenSub').textContent = `${result.service} — paid & confirmed for ${when}.`;
+            document.getElementById('loyaltyNote').textContent = '';
+            document.getElementById('paymentSection').style.display = 'none';
+            tokenResult.classList.add('show');
+            bookMsg.textContent = "Payment successful — appointment confirmed! ✓";
+            bookMsg.className = "ok";
+            document.getElementById('bookForm').reset();
+            loadQueue();
+          }catch(err){
+            bookMsg.textContent = `Payment succeeded but confirmation failed — contact the salon with payment ID ${response.razorpay_payment_id}.`;
+            bookMsg.className = "err";
+            console.error(err);
+          }
+        },
+        modal: {
+          ondismiss: function(){
+            bookMsg.textContent = "Payment cancelled.";
+            bookMsg.className = "err";
+          },
+        },
+      });
+      rzp.open();
+      bookMsg.textContent = "";
+    }catch(err){
+      bookMsg.textContent = "Couldn't start payment — Razorpay may not be configured yet.";
+      bookMsg.className = "err";
+      console.error(err);
+    }
+  }
+
 
   async function loadQueue(){
     const boardsEl = document.getElementById('staffBoards');

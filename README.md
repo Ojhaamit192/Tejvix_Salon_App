@@ -237,3 +237,108 @@ third-party QR image service (`api.qrserver.com`) — no backend code, no new
 function. It's fine for this use case, but if you'd rather not depend on a
 third-party QR generator long-term, swapping it for a bundled QR-code
 JS library is a small, self-contained change whenever you're ready.
+
+---
+
+## Major update: 7-day advance booking with Razorpay payment
+
+### Extra setup step: run migration 4
+
+After `migration_3`, also run **`supabase/migration_4_razorpay.sql`** in
+Supabase's SQL Editor. It adds `payment_status`, `razorpay_order_id`, and
+`razorpay_payment_id` columns to the existing `tokens` table — no new tables.
+
+### Set up Razorpay
+
+1. Create an account at [razorpay.com](https://razorpay.com) (test mode works
+   immediately with no KYC; live payments need Razorpay's business
+   verification, same as any payment gateway).
+2. Go to **Settings → API Keys** and generate a Key ID + Key Secret.
+3. In Netlify: **Site settings → Environment variables**, add:
+
+| Key | Value |
+|---|---|
+| `RAZORPAY_KEY_ID` | starts with `rzp_test_` or `rzp_live_` |
+| `RAZORPAY_KEY_SECRET` | keep this secret — never put it in the frontend |
+
+Redeploy after adding these.
+
+### How the new booking flow works
+
+- **Walk-in** bookings are unchanged — join the live queue immediately, pay
+  the salon directly (the optional UPI QR from before still applies here).
+- **"Book for later"** now offers a **date picker for the next 7 days**
+  (not just today), followed by a time slot for that day.
+- Submitting an advance booking no longer calls `/api/book`. Instead:
+  1. The browser asks `create-razorpay-order.js` to create an order for the
+     service's price.
+  2. Razorpay's Checkout popup opens (handles cards, UPI, netbanking, wallets
+     — "saare options" — automatically; nothing to configure per-method).
+  3. On success, the browser sends the payment details to
+     `verify-razorpay-payment.js`, which **re-checks the payment signature
+     server-side** (never trust a "success" message from the browser alone)
+     and only then creates the appointment in Supabase and sends the
+     confirmation SMS.
+- If payment fails or is cancelled, no appointment is created — the customer
+  can just try again.
+
+### Important: one Razorpay account for the whole platform (for now)
+
+All salons currently share **one** Razorpay account (yours), so payments
+settle to your bank account, not each salon's. This is the simplest way to
+get advance payments working across a multi-salon platform. If different
+salons need money to land directly in their own accounts, that requires
+**Razorpay Route** (their marketplace/split-payment product, where each
+salon links their own bank account) — a bigger project than this update,
+worth doing once you have real salons on board who need that.
+
+### Test mode vs live mode
+
+Razorpay's **test mode** keys let you test the entire flow (including test
+card numbers listed in Razorpay's docs) without moving real money — good for
+trying this out before going live. Switching to `rzp_live_` keys later needs
+no code changes, just updating the two environment variables.
+
+---
+
+## Update: Simple "Scan & Confirm" payment (Razorpay made optional)
+
+For now, advance bookings use a simpler, zero-setup payment flow instead of
+Razorpay (Razorpay's code is still in the project — see below on switching
+to it later, once you're ready to set it up).
+
+### How it works
+
+1. Customer picks a date (next 7 days), time, and service, and submits.
+2. The slot is reserved immediately in Supabase.
+3. If the salon has `upi_id` or `payment_qr_url` set (from migration_3), a
+   payment screen appears with a UPI QR code for that service's exact price.
+   The customer scans it with any UPI app and pays.
+4. The customer taps **"I have completed the payment ✓"** — this is a
+   self-reported confirmation, not a verified one (unlike Razorpay, there's
+   no bank-side proof). It's an interim, trust-based solution.
+5. An **invoice** appears on screen — salon name, customer details, service,
+   amount, date/time, booking reference, and payment status. The customer
+   can tap **Print/Save**, and a pre-filled **WhatsApp message is opened**
+   to the salon's phone number (from the salon's own WhatsApp, no API or
+   Twilio/Meta setup needed) so the owner is notified instantly. If a salon
+   has no `upi_id`/`payment_qr_url` set, the payment step is skipped
+   entirely and the invoice shows "Payment: Not required".
+6. The booking shows up immediately in the admin panel's **"Upcoming
+   appointments"** list, with a **● Paid** or **● Payment pending** badge.
+
+No new environment variables or Razorpay account are needed for this — it
+reuses the `upi_id` / `payment_qr_url` columns from migration_3.
+
+### Switching to Razorpay later
+
+The Razorpay functions (`create-razorpay-order.js`,
+`verify-razorpay-payment.js`) and the `startRazorpayBooking()` function in
+`index.html` are still in the codebase, just not wired to the booking form
+right now. To switch back once Razorpay is set up: in `index.html`, find
+`startUpiClaimBooking({ name, phone, serviceId, staffId, scheduledAt });`
+inside the form's submit handler and change it to
+`startRazorpayBooking({ name, phone, serviceId, staffId, scheduledAt });`.
+Razorpay gives verified, bank-confirmed payments (rather than the honesty-
+based "I have paid" tap), which is worth moving to once you're ready for
+real transaction volume.

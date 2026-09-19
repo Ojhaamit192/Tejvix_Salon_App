@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Staff Panel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="icon" type="image/png" href="assets/logo-icon.png">
 <link rel="manifest" href="manifest.json">
@@ -76,7 +75,7 @@
   </div>
 
   <div class="card" id="apptCard" style="display:none;">
-    <h2 style="font-size:1rem; margin-bottom:12px;">Upcoming appointments today</h2>
+    <h2 style="font-size:1rem; margin-bottom:12px;">Upcoming appointments</h2>
     <div id="apptList"><p style="color:var(--text-dim); font-size:0.9rem;">Loading...</p></div>
   </div>
 
@@ -115,11 +114,12 @@
     msgEl.textContent = "Open this page as admin.html?salon=your-salon-slug";
     msgEl.className = 'err';
   } else {
-    // Fetch and show the salon name right away (no PIN needed for this)
+    // Salon name isn't sensitive — show it right away, before the PIN is entered,
+    // so the panel doesn't just sit on "Loading...".
     fetch(`${API_BASE}/queue?salon=${encodeURIComponent(salonSlug)}`)
       .then(res => res.json())
       .then(data => { if (data.salon) salonNameEl.textContent = data.salon.name; })
-      .catch(() => { salonNameEl.textContent = "Staff Panel"; });
+      .catch(() => { salonNameEl.textContent = salonSlug; });
   }
 
   async function refreshStatus(){
@@ -148,10 +148,15 @@
         return;
       }
       apptList.innerHTML = data.appointments.map(a => {
-        const when = new Date(a.scheduled_at).toLocaleTimeString('en-IN', {hour:'numeric', minute:'2-digit', hour12:true});
+        const when = new Date(a.scheduled_at).toLocaleString('en-IN', {day:'numeric', month:'short', hour:'numeric', minute:'2-digit', hour12:true});
+        const payBadge = a.payment_status === 'claimed'
+          ? '<span style="color:var(--success);">● Paid</span>'
+          : a.payment_status === 'pending'
+          ? '<span style="color:var(--gold-soft);">● Payment pending</span>'
+          : '';
         return `
           <div class="appt-row">
-            <span>${when} — ${a.name} (${a.service}${a.staff ? ', ' + a.staff : ''})</span>
+            <span>${when} — ${a.name} (${a.service}${a.staff ? ', ' + a.staff : ''}) ${payBadge}</span>
             <button class="btn-secondary" onclick="checkIn('${a.id}')">Check In</button>
           </div>`;
       }).join('');
