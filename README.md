@@ -332,13 +332,314 @@ reuses the `upi_id` / `payment_qr_url` columns from migration_3.
 
 ### Switching to Razorpay later
 
-The Razorpay functions (`create-razorpay-order.js`,
-`verify-razorpay-payment.js`) and the `startRazorpayBooking()` function in
-`index.html` are still in the codebase, just not wired to the booking form
-right now. To switch back once Razorpay is set up: in `index.html`, find
-`startUpiClaimBooking({ name, phone, serviceId, staffId, scheduledAt });`
-inside the form's submit handler and change it to
-`startRazorpayBooking({ name, phone, serviceId, staffId, scheduledAt });`.
+The Razorpay backend functions (`create-razorpay-order.js`,
+`verify-razorpay-payment.js`) are untouched and ready to use. The
+`index.html` UX rewrite replaced the old form-based booking flow with the
+step-by-step wizard described further down in this README, so the earlier
+`startRazorpayBooking()` helper no longer exists as dead code in the file.
+To re-enable Razorpay: in `finalizeBooking()`'s appointment branch, call
+`create-razorpay-order` (amount = the selected service's price), open
+Razorpay Checkout with the returned `order_id`/`key_id`, and on success call
+`verify-razorpay-payment` instead of going straight to the UPI QR step —
+the same pattern used before, just inside the new wizard's finalize step.
 Razorpay gives verified, bank-confirmed payments (rather than the honesty-
 based "I have paid" tap), which is worth moving to once you're ready for
 real transaction volume.
+
+---
+
+## Major update: Full UX redesign (mobile-app-style navigation)
+
+`index.html` was rewritten from a single long page into a proper mobile-app
+structure. **No features were removed or changed on the backend** — every
+existing capability (services, staff, live queue, walk-in tokens, advance
+booking, UPI self-report payment, reviews, loyalty, WhatsApp, maps, gallery,
+PWA) is still there, just organized around a clearer user journey.
+
+### What changed
+
+- **Bottom navigation** (Home / Services / Queue / Book) replaces scrolling
+  through one long page — each tab has a single, clear purpose.
+- **Home tab** is a "Discover" view: gallery, rating, address, a single
+  primary "Book Appointment" button, then previews of Popular Services,
+  Team, and Reviews, each linking deeper. Booking is the primary action;
+  everything else is secondary.
+- **Services tab** and **Queue tab** are dedicated full views instead of
+  being sections you had to scroll past.
+- **Book tab is a step-by-step wizard**, not one long form:
+  Type → Service → Staff → (Date → Time, for advance bookings) → Details →
+  Review → Confirm. Each screen asks for exactly one decision.
+  - A **progress indicator** at the top shows completed/current/upcoming
+    steps at a glance.
+  - **Back always preserves your earlier choices** — the wizard's data
+    lives in one JS object (`wizard.data`) that's never cleared by
+    navigating backward, only by finishing or explicitly restarting.
+  - Selected options get a clear accent border, background tint, and
+    checkmark — never ambiguous which one is picked.
+  - A **sticky bottom bar** shows the running price and a consistently
+    labeled action button (`Continue` while stepping through, `Join Queue`
+    or `Continue to Payment` on the final review step) — no need to scroll
+    to find the next button.
+- **Consistent button language** throughout: `Continue` to progress,
+  `Join Queue` / `Continue to Payment` to finalize, `Back` to go back,
+  `Try Again` to retry a failed load. No more mixed `Next` / `Proceed` /
+  `Submit` wording.
+- **Loading states use skeletons** (`.skel` shimmering placeholders)
+  instead of blank space or a bare "Loading..." string.
+- **Empty and error states are designed**, not raw text: an icon, a plain-
+  language explanation, and — for errors — a working `Try Again` button
+  that retries the exact same request.
+- **Mobile-first**: the whole layout is built for narrow screens first
+  (bottom nav, single-column wizard, sticky CTA sized for thumbs), and
+  simply has more breathing room on wider screens rather than being
+  redesigned separately for desktop.
+
+### What stayed exactly the same (backend, data, APIs)
+
+Nothing in `netlify/functions/`, `supabase/`, `admin.html`, or the database
+schema changed for this update — only `index.html`'s structure and code.
+Every API call the new wizard makes (`/api/book`, `/api/services`,
+`/api/staff`, `/api/queue`, `/api/mark-payment-claimed`, `/api/reviews`) is
+the same endpoint, same payload shape, as before.
+
+---
+
+## Major update: 5 add-ons (My Bookings, reminders, Razorpay, charts, owner dashboard)
+
+### Extra setup step: run migration 6
+
+Run **`supabase/migration_6_reminders_sms_log_owner.sql`** in Supabase's SQL
+Editor (after migration_5). It adds a `reminder_sent` flag to `tokens` and a
+new `sms_logs` table (used by the owner dashboard's SMS counts).
+
+### 1. "My Bookings" lookup
+
+New page: **`my-bookings.html`**. A customer enters their phone number and
+sees every booking — any salon, upcoming and past — under that number. No
+login needed; it's linked from the footer of the main app. Backed by the
+new `my-bookings.js` function (`GET /api/my-bookings?phone=...`).
+
+### 2. Appointment reminder SMS
+
+A new **scheduled function**, `send-reminders.js`, runs automatically every
+5 minutes (configured in `netlify.toml` — Netlify's own scheduler, no
+external cron service needed). It finds appointments happening in the next
+25–35 minutes that haven't been reminded yet and texts the customer, then
+marks them so they aren't reminded twice. This function isn't reachable via
+`/api/*` — Netlify invokes it on its own timer. You can watch it run under
+**Netlify → Functions → send-reminders → Logs**.
+
+### 3. Razorpay is now wired in (with automatic fallback)
+
+The booking wizard's advance-booking step now **tries Razorpay first**: if
+`RAZORPAY_KEY_ID`/`RAZORPAY_KEY_SECRET` are set, the customer gets
+Razorpay's full checkout (verified, bank-confirmed payment). If Razorpay
+isn't configured, it **silently falls back** to the UPI self-report flow
+from before — no error shown to the customer either way, and no code
+changes needed when you're ready to add Razorpay later (just add the two
+environment variables and redeploy).
+
+### 4. Visual analytics in the salon admin panel
+
+`admin.html`'s "Today's summary" now includes three charts (via Chart.js,
+loaded from a CDN — no build step needed): a 7-day revenue trend, a
+services-popularity bar chart, and a busiest-hours bar chart. `analytics.js`
+now returns a week of data instead of just today for these.
+
+### 5. Owner dashboard (platform-wide, for you)
+
+New page: **`owner-dashboard.html`** — separate from any salon's admin
+panel, protected by its own `OWNER_PASSWORD` environment variable (pick any
+strong password and set it in Netlify, alongside your other variables).
+Shows, across **every salon on the platform**:
+
+- Total bookings, customers served, no-shows, revenue tracked
+- Unique customers and average revenue per customer
+- A 7-day bookings & revenue trend chart
+- Most-booked services platform-wide
+- A per-salon breakdown table (bookings/served/revenue for each shop)
+- SMS activity (sent / dev-mode / failed counts, from the new `sms_logs`
+  table — this is why migration_6 adds that table)
+
+Backed by the new `owner-analytics.js` function.
+
+### New environment variable
+
+| Key | Value |
+|---|---|
+| `OWNER_PASSWORD` | any password you choose — protects `owner-dashboard.html` |
+
+(`RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` were already documented earlier
+in this file — set those too if you want Razorpay active now rather than
+later.)
+
+---
+
+## Update: one active booking per phone number, per salon
+
+A customer can now only have **one active booking at a time** at a given
+salon — whether that's a walk-in token currently waiting/being served, or
+an advance appointment scheduled for later. Trying to book again while one
+is already active is rejected with a clear message (e.g. "You already have
+an active token (T3) in today's queue" or "...an appointment booked for
+20 Sep, 5:30 PM").
+
+This applies everywhere a booking can be created:
+- `book.js` (walk-in and the UPI self-report appointment flow)
+- `create-razorpay-order.js` — checked **before** taking payment, so a
+  customer is never charged for a booking that would then be rejected
+- `verify-razorpay-payment.js` — a safety-net check for the rare case of
+  two booking attempts happening at almost the same instant
+
+A booking becomes "inactive" again once staff mark it `done` or `no_show`
+(walk-in/queue) or it's checked in (appointment) — at that point the same
+phone number is free to book again immediately.
+
+No new migration needed — this only adds a check using columns that
+already exist.
+
+---
+
+## Update: automatic payout to the salon after Razorpay payment (RazorpayX)
+
+Razorpay Route (the marketplace split-payment product) now requires the
+platform to show ₹40 Lakh+ in GST turnover (a rule that took effect
+January 1, 2026), so it isn't accessible for a new/small platform. Instead,
+this update uses **RazorpayX Payouts** — a separate product with no such
+turnover requirement — to automatically send each salon their share right
+after a customer's Razorpay payment is verified.
+
+### How it works
+
+1. Customer pays via Razorpay checkout (as before) — money lands in your
+   Razorpay account.
+2. The instant the payment is verified and the appointment is created,
+   `verify-razorpay-payment.js` calls RazorpayX's Payout API to send that
+   exact amount to the **salon's own UPI ID** (the same `upi_id` field
+   already used for the QR-code flow — no new field to fill in).
+3. The outcome (`success`, `failed`, or `no_upi_on_file` if the salon
+   hasn't set a UPI ID) is saved on the booking and shown as a badge next
+   to that appointment in the admin panel's "Upcoming appointments" list —
+   e.g. "● Sent to your UPI" or "● Payout failed — check RazorpayX".
+
+The payout step is best-effort and never blocks the booking itself: if
+RazorpayX isn't configured yet, or the payout fails for any reason, the
+customer's payment and appointment are still confirmed normally — it just
+means you (or the salon) may need to follow up on that payout manually.
+
+### Extra setup step: run migration 7
+
+Run **`supabase/migration_7_razorpayx_payout.sql`** in Supabase's SQL
+Editor (after migration_6). It adds `payout_status` and `payout_id`
+columns to `tokens` — no new tables.
+
+### Setting up RazorpayX
+
+1. From your existing Razorpay Dashboard, look for **RazorpayX** (Razorpay's
+   business banking product) and start onboarding.
+2. This requires its own one-time KYC/activation for **your** business (not
+   per salon) and linking a current account with one of RazorpayX's partner
+   banks (RBL, Yes Bank, Axis, or ICICI, depending on availability).
+3. Once activated, find your **RazorpayX account number** on the dashboard.
+4. In Netlify: add `RAZORPAY_X_ACCOUNT_NUMBER` with that value.
+   `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` (already set for the payment
+   gateway) work for RazorpayX too — no separate keys needed.
+5. Redeploy.
+
+### Getting each salon's UPI ID
+
+This reuses the `upi_id` column on `salons` (from migration_3). If a salon
+doesn't have one set yet, add it via Supabase Table Editor — the same value
+already used to show the customer-facing payment QR now doubles as the
+payout destination.
+
+### Trade-offs worth knowing about
+
+- A small RazorpayX payout fee applies per transaction, on top of the
+  regular Razorpay gateway fee.
+- Money technically passes through your account for a moment before being
+  paid out — worth keeping in mind for your own bookkeeping (you're
+  holding, then forwarding, the salon's share, not just collecting your own
+  commission).
+- If your platform later qualifies for Route (₹40L+ GST turnover), that
+  remains a cleaner long-term option — this RazorpayX approach is the
+  practical way to get "money goes straight to the salon" working right
+  now, without waiting to hit that threshold.
+
+---
+
+## Update: 9 features from the "Universal Super-App" wishlist
+
+After an honest look at all 21 requested features (some needed different
+payment/SMS infrastructure entirely, or were more marketing language than
+buildable specs — see the in-chat breakdown), here's what got built:
+
+### 1. Multi-service cart
+The booking wizard's Service step is now multi-select — pick Haircut *and*
+Shaving *and* Facial in one booking, with a running total shown live.
+
+### 2. Retail add-on shelf
+A new "Add-ons" step lets customers add retail products (gel, oil, etc.) to
+their booking. Manage products per salon in the new `products` table
+(Supabase Table Editor — same pattern as services/staff).
+
+### 3. SMS vs WhatsApp channel choice
+Customers pick how they want updates. WhatsApp mode skips the SMS (saving
+gateway cost) and instead shows a **"Save to WhatsApp"** button with the
+booking details pre-filled, so the customer can send it to themselves.
+
+### 4. Happy Hours discount
+A toggle in the salon's Admin Panel (Settings card) auto-applies a flat
+discount (default 20%) on every booking, Monday–Wednesday.
+
+### 5. High-demand surge fee
+When a salon's queue reaches 5+ people waiting, a ₹30 surge fee is added
+automatically to new walk-in bookings — no manual toggle needed.
+
+### 6. Walk-in Quick-Add (no phone needed)
+A button in the Admin Panel lets staff add an offline/cash walk-in guest —
+name and service only, no phone number — so every customer counts toward
+revenue and analytics even if they don't want to share their number.
+
+### 7. Cancellation/no-show reason log
+Marking a customer as a no-show now requires typing a reason first — this
+is saved on the booking (`cancellation_reason`) so an owner can review
+patterns later and catch staff skipping bookings to avoid commission.
+
+### 8. Mock vs Real SMS mode
+A toggle in the salon Settings card: "Mock" mode skips real SMS sending
+entirely (free) — perfect for live pitch demos without burning SMS credit;
+"Real" mode sends actual messages as usual.
+
+### 9. One-tap repeat booking
+When a returning customer types their phone number, the wizard looks up
+their last order at that salon (via the same lookup that powers My
+Bookings) and offers "Repeat your last order — Haircut, Hair Gel?" as a
+single tap that pre-fills their whole cart.
+
+### Already built earlier (mentioned in the wishlist but not rebuilt)
+Live wait-time predictor, stylist selection, PWA install, one-active-
+booking-per-phone (server-side, stronger than a localStorage device lock),
+and the Owner Dashboard (which already covers the "App Owner Matrix" ask,
+now with CSV export added too).
+
+### Coming soon (and why)
+- **Bank refund engine** — needs real integration with Razorpay's Refunds
+  API; the reschedule/cancellation-reason pieces are built, but automated
+  bank refunds with a processing fee need careful, separate work.
+- **Voice assistant & counter audio announcements** — genuinely buildable
+  (Web Speech API + Supabase Realtime) but intentionally left for a
+  dedicated follow-up rather than rushed into this batch.
+- **Geofencing fraud shield** — GPS-based proximity checks from a browser
+  are unreliable and easy to spoof; not worth shipping as a false sense of
+  security.
+- **Global (New York) / multi-currency expansion** — Fast2SMS and
+  Razorpay/UPI are India-only; real international support needs a
+  completely different payment and messaging stack, not a code change.
+
+### Extra setup step: run migration 8
+
+Run **`supabase/migration_8_cart_addons_surge_happyhours.sql`** in
+Supabase's SQL Editor (after migration_7). It adds the `products` table
+and several columns to `tokens`/`salons` — all additive, existing
+single-service bookings keep working exactly as before.

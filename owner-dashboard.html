@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Owner Dashboard — Tejvix</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="assets/logo-icon.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg: #0D0A08; --bg-panel: #1A130E; --bg-panel-2: #241A12; --line: #3D2A1A;
+    --gold: #FF6A00; --gold-soft: #FFB020; --text: #F5F0EA; --text-dim: #C9B29A;
+    --success: #5EAE7C; --danger: #E0574A;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--bg); color:var(--text); font-family:'Inter', sans-serif; line-height:1.5; padding:24px; }
+  h1,h2{font-family:'Fraunces', serif; font-weight:500;}
+  .wrap{max-width:900px; margin:0 auto;}
+  .logo{display:flex; align-items:center; gap:8px; font-family:'Fraunces',serif; font-size:1.2rem; font-weight:600; margin-bottom:24px;}
+  .logo img{height:32px; filter: drop-shadow(0 0 8px rgba(255,106,0,0.5));}
+  .logo span{color:var(--gold-soft);}
+  .card{ background:var(--bg-panel); border:1px solid var(--line); border-radius:14px; padding:22px; margin-bottom:18px; }
+  input{ width:100%; max-width:300px; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:13px; color:var(--text); font-size:1rem; margin-bottom:12px; }
+  button{ background:var(--gold); color:#1a0d00; padding:13px 22px; border-radius:8px; font-weight:600; border:none; cursor:pointer; }
+  button:hover{background:var(--gold-soft);}
+  .metric-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(160px,1fr)); gap:14px; margin-bottom:20px; }
+  .metric{ background:var(--bg-panel-2); border:1px solid var(--line); border-radius:12px; padding:16px; }
+  .metric .val{ font-family:'Fraunces',serif; font-size:1.6rem; color:var(--gold-soft); }
+  .metric .label{ color:var(--text-dim); font-size:0.8rem; margin-top:4px; }
+  table{ width:100%; border-collapse:collapse; font-size:0.9rem; }
+  th, td{ text-align:left; padding:10px 8px; border-bottom:1px solid var(--line); }
+  th{ color:var(--text-dim); font-weight:600; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.03em; }
+  #msg{ font-size:0.9rem; margin-top:8px; }
+  .err{ color:var(--danger); } .ok{ color:var(--success); }
+  canvas{ max-height:280px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="index.html" class="logo"><img src="assets/logo-icon.png" alt="Tejvix">Tejvix<span>.</span> Owner Dashboard</a>
+
+  <div class="card" id="gateCard">
+    <div style="margin-bottom:10px; color:var(--text-dim); font-size:0.9rem;">This dashboard shows data across all salons on the platform. Enter the owner password to continue.</div>
+    <input type="password" id="passwordInput" placeholder="Owner password">
+    <br>
+    <button id="unlockBtn">View Dashboard</button>
+    <div id="msg"></div>
+  </div>
+
+  <div id="dashboard" style="display:none;">
+    <div style="text-align:right; margin-bottom:14px;"><button id="downloadCsvBtn">⬇ Download CSV Report</button></div>
+    <div class="metric-grid" id="metricGrid"></div>
+
+    <div class="card">
+      <h2 style="font-size:1rem; margin-bottom:14px;">Bookings & revenue — last 7 days</h2>
+      <canvas id="trendChart"></canvas>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:1rem; margin-bottom:14px;">Most-booked services (platform-wide)</h2>
+      <canvas id="serviceChart"></canvas>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:1rem; margin-bottom:14px;">Per-salon breakdown</h2>
+      <table id="salonTable"></table>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:1rem; margin-bottom:14px;">SMS activity</h2>
+      <div id="smsStats"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_BASE = "/api";
+  let password = null;
+
+  document.getElementById('unlockBtn').addEventListener('click', async () => {
+    const msgEl = document.getElementById('msg');
+    password = document.getElementById('passwordInput').value.trim();
+    if (!password){ msgEl.textContent = "Enter the password first."; msgEl.className = 'err'; return; }
+
+    msgEl.textContent = "Loading...";
+    msgEl.className = '';
+
+    try{
+      const res = await fetch(`${API_BASE}/owner-analytics?password=${encodeURIComponent(password)}`);
+      const data = await res.json();
+      if (res.status === 401){ msgEl.textContent = "Incorrect password."; msgEl.className = 'err'; return; }
+      if (!res.ok) throw new Error(data.error || "Something went wrong");
+
+      document.getElementById('gateCard').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      renderDashboard(data);
+    }catch(err){
+      msgEl.textContent = "Couldn't load the dashboard.";
+      msgEl.className = 'err';
+      console.error(err);
+    }
+  });
+
+  let lastDashboardData = null;
+
+  function renderDashboard(data){
+    lastDashboardData = data;
+    document.getElementById('metricGrid').innerHTML = `
+      <div class="metric"><div class="val">${data.total_salons}</div><div class="label">Salons on platform</div></div>
+      <div class="metric"><div class="val">${data.total_bookings}</div><div class="label">Total bookings</div></div>
+      <div class="metric"><div class="val">${data.total_served}</div><div class="label">Customers served</div></div>
+      <div class="metric"><div class="val">${data.total_no_shows}</div><div class="label">No-shows</div></div>
+      <div class="metric"><div class="val">₹${data.total_revenue}</div><div class="label">Total revenue tracked</div></div>
+      <div class="metric"><div class="val">${data.unique_customers}</div><div class="label">Unique customers</div></div>
+      <div class="metric"><div class="val">₹${data.avg_revenue_per_customer}</div><div class="label">Avg. revenue / customer</div></div>
+    `;
+
+    const colors = { gold:'#FF6A00', goldSoft:'#FFB020', dim:'#C9B29A', line:'#3D2A1A' };
+    const commonOpts = {
+      responsive:true,
+      plugins:{ legend:{ labels:{ color: colors.dim } } },
+      scales:{ x:{ ticks:{color:colors.dim}, grid:{color:colors.line} }, y:{ ticks:{color:colors.dim}, grid:{color:colors.line}, beginAtZero:true } },
+    };
+
+    new Chart(document.getElementById('trendChart'), {
+      type: 'line',
+      data: {
+        labels: data.trend.map(d => new Date(d.date).toLocaleDateString('en-IN', {weekday:'short', day:'numeric'})),
+        datasets: [
+          { label:'Bookings', data: data.trend.map(d=>d.bookings), borderColor: colors.goldSoft, backgroundColor:'transparent', tension:0.3, yAxisID:'y' },
+          { label:'Revenue (₹)', data: data.trend.map(d=>d.revenue), borderColor: colors.gold, backgroundColor:'rgba(255,106,0,0.15)', fill:true, tension:0.3, yAxisID:'y' },
+        ],
+      },
+      options: commonOpts,
+    });
+
+    new Chart(document.getElementById('serviceChart'), {
+      type: 'bar',
+      data: { labels: data.service_breakdown.map(s=>s.name), datasets:[{ label:'Bookings', data: data.service_breakdown.map(s=>s.count), backgroundColor: colors.gold }] },
+      options: { ...commonOpts, plugins:{ legend:{ display:false } } },
+    });
+
+    document.getElementById('salonTable').innerHTML = `
+      <tr><th>Salon</th><th>Bookings</th><th>Served</th><th>Revenue</th></tr>
+      ${data.per_salon.map(s => `<tr><td>${s.salon_name}</td><td>${s.bookings}</td><td>${s.served}</td><td>₹${s.revenue}</td></tr>`).join('')}
+    `;
+
+    document.getElementById('smsStats').innerHTML = `
+      <div class="metric-grid">
+        <div class="metric"><div class="val">${data.sms_sent}</div><div class="label">SMS sent</div></div>
+        <div class="metric"><div class="val">${data.sms_dev_mode}</div><div class="label">Dev-mode (not actually sent)</div></div>
+        <div class="metric"><div class="val">${data.sms_failed}</div><div class="label">Failed</div></div>
+      </div>
+    `;
+  }
+
+  function downloadCsv(){
+    if (!lastDashboardData) return;
+    const d = lastDashboardData;
+    const lines = [];
+
+    lines.push('Tejvix Platform Report');
+    lines.push(`Generated,${new Date().toLocaleString('en-IN')}`);
+    lines.push('');
+    lines.push('Metric,Value');
+    lines.push(`Total Salons,${d.total_salons}`);
+    lines.push(`Total Bookings,${d.total_bookings}`);
+    lines.push(`Customers Served,${d.total_served}`);
+    lines.push(`No-Shows,${d.total_no_shows}`);
+    lines.push(`Total Revenue,${d.total_revenue}`);
+    lines.push(`Unique Customers,${d.unique_customers}`);
+    lines.push(`Avg Revenue per Customer,${d.avg_revenue_per_customer}`);
+    lines.push(`SMS Sent,${d.sms_sent}`);
+    lines.push(`SMS Dev-Mode,${d.sms_dev_mode}`);
+    lines.push(`SMS Failed,${d.sms_failed}`);
+    lines.push('');
+    lines.push('Per-Salon Breakdown');
+    lines.push('Salon,Bookings,Served,Revenue');
+    d.per_salon.forEach(s => lines.push(`"${s.salon_name}",${s.bookings},${s.served},${s.revenue}`));
+    lines.push('');
+    lines.push('Service Breakdown (Platform-wide)');
+    lines.push('Service,Bookings');
+    d.service_breakdown.forEach(s => lines.push(`"${s.name}",${s.count}`));
+    lines.push('');
+    lines.push('7-Day Trend');
+    lines.push('Date,Bookings,Revenue');
+    d.trend.forEach(t => lines.push(`${t.date},${t.bookings},${t.revenue}`));
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `tejvix-report-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  document.getElementById('downloadCsvBtn').addEventListener('click', downloadCsv);
+</script>
+</body>
+</html>

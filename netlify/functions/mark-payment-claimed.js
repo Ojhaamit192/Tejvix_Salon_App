@@ -21,6 +21,7 @@ exports.handler = async (event) => {
   }
 
   const tokenId = (data.token_id || "").trim();
+  const paymentRef = (data.payment_ref || "").trim();
   if (!tokenId) {
     return { statusCode: 400, headers: CORS_HEADERS, body: JSON.stringify({ error: "token_id is required" }) };
   }
@@ -29,7 +30,7 @@ exports.handler = async (event) => {
 
   const { data: updated, error } = await supabase
     .from("tokens")
-    .update({ payment_status: "claimed" })
+    .update({ payment_status: "claimed", payment_ref: paymentRef || null })
     .eq("id", tokenId)
     .eq("payment_status", "pending")
     .select("id")

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Tejvix — Local Salon Queue Platform</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -11,304 +11,312 @@
 <link rel="apple-touch-icon" href="assets/logo-icon.png">
 <meta name="theme-color" content="#FF6A00">
 <style>
-  .glow-text{ text-shadow: 0 0 18px rgba(255,106,0,0.45); }
-  .glow-btn{ box-shadow: 0 0 22px rgba(255,106,0,0.35); }
-  .logo-mark{ height:38px; width:auto; filter: drop-shadow(0 0 10px rgba(255,106,0,0.55)); }
   :root{
-    --bg: #0D0A08;
-    --bg-panel: #1A130E;
-    --bg-panel-2: #241A12;
-    --line: #3D2A1A;
-    --gold: #FF6A00;
-    --gold-soft: #FFB020;
-    --text: #F5F0EA;
-    --text-dim: #C9B29A;
-    --success: #5EAE7C;
-    --danger: #E0574A;
+    --bg: #0D0A08; --bg-panel: #1A130E; --bg-panel-2: #241A12; --line: #3D2A1A;
+    --gold: #FF6A00; --gold-soft: #FFB020; --text: #F5F0EA; --text-dim: #C9B29A;
+    --success: #5EAE7C; --danger: #E0574A;
+    --nav-h: 64px;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   html{scroll-behavior:smooth;}
   body{
     background:var(--bg); color:var(--text); font-family:'Inter', sans-serif;
     line-height:1.5; -webkit-font-smoothing:antialiased;
+    padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom));
   }
   h1,h2,h3,.display{ font-family:'Fraunces', serif; font-weight:500; letter-spacing:-0.01em; }
   a{color:inherit; text-decoration:none;}
-  .wrap{max-width:1100px; margin:0 auto; padding:0 24px;}
+  button{font-family:inherit;}
+  .wrap{max-width:720px; margin:0 auto; padding:0 20px;}
   :focus-visible{outline:2px solid var(--gold-soft); outline-offset:3px;}
+  [hidden]{display:none !important;}
 
-  header{ position:sticky; top:0; z-index:50; background:rgba(23,15,29,0.9); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); }
-  nav.wrap{ display:flex; align-items:center; justify-content:space-between; height:72px; }
-  .logo{display:flex; align-items:center; gap:10px; font-family:'Fraunces',serif; font-size:1.35rem; font-weight:600; color:var(--text);}
+  /* ---------- Top header ---------- */
+  header{ position:sticky; top:0; z-index:50; background:rgba(13,10,8,0.92); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); }
+  nav.topbar{ max-width:720px; margin:0 auto; padding:0 20px; display:flex; align-items:center; justify-content:space-between; height:64px; }
+  .logo{display:flex; align-items:center; gap:8px; font-family:'Fraunces',serif; font-size:1.2rem; font-weight:600; color:var(--text);}
   .logo span{color:var(--gold-soft);}
-  .navlinks{display:flex; gap:32px; font-size:0.95rem; color:var(--text-dim);}
-  .navlinks a:hover{color:var(--text);}
-  .navcta{ background:var(--gold); color:#231407; padding:10px 20px; border-radius:8px; font-weight:600; font-size:0.9rem; }
-  .navcta:hover{background:var(--gold-soft);}
-  @media (max-width:760px){ .navlinks{display:none;} }
+  .logo-mark{ height:32px; width:auto; filter: drop-shadow(0 0 8px rgba(255,106,0,0.5)); }
+  .top-action{ font-size:0.85rem; color:var(--text-dim); }
 
-  section{padding:56px 0;}
-  .section-head{max-width:60ch; margin-bottom:36px;}
-  .section-head h2{font-size:clamp(1.6rem,3vw,2.1rem);}
-  .section-head p{color:var(--text-dim); margin-top:10px;}
+  /* ---------- Bottom navigation (mobile app style) ---------- */
+  .bottom-nav{
+    position:fixed; left:0; right:0; bottom:0; z-index:60;
+    background:rgba(20,15,11,0.97); backdrop-filter:blur(14px);
+    border-top:1px solid var(--line);
+    display:flex; justify-content:space-around; align-items:stretch;
+    height:var(--nav-h); padding-bottom:env(safe-area-inset-bottom);
+  }
+  .nav-btn{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+    background:none; border:none; color:var(--text-dim); font-size:0.7rem; cursor:pointer; padding:6px 4px;
+  }
+  .nav-btn .ic{font-size:1.25rem; line-height:1;}
+  .nav-btn.active{color:var(--gold-soft);}
+  .nav-btn.active .ic{filter: drop-shadow(0 0 6px rgba(255,176,32,0.6));}
 
-  .hero{padding:64px 0 40px;}
-  .eyebrow{color:var(--gold-soft); font-size:0.9rem; margin-bottom:16px;}
-  .hero h1{font-size:clamp(2rem, 4vw, 3rem); line-height:1.15; margin-bottom:16px; text-shadow:0 0 24px rgba(255,106,0,0.3);}
-  .hero p.lede{color:var(--text-dim); font-size:1.05rem; max-width:60ch; margin-bottom:24px;}
-  .hero-actions{display:flex; gap:14px; flex-wrap:wrap;}
-  .btn-primary{ background:var(--gold); color:#1a0d00; padding:13px 24px; border-radius:9px; font-weight:600; font-size:0.98rem; border:none; cursor:pointer; box-shadow:0 0 22px rgba(255,106,0,0.35); }
-  .btn-primary:hover{background:var(--gold-soft); box-shadow:0 0 28px rgba(255,176,32,0.5);}
-  .btn-ghost{ border:1px solid var(--line); padding:13px 24px; border-radius:9px; font-weight:600; font-size:0.98rem; color:var(--text); background:none; cursor:pointer;}
+  section, .section{padding:32px 0;}
+  .section-head{margin-bottom:20px;}
+  .section-head h2{font-size:1.3rem;}
+  .section-head p{color:var(--text-dim); margin-top:6px; font-size:0.92rem;}
+  .section-link{font-size:0.85rem; color:var(--gold-soft); display:inline-block; margin-top:10px;}
+
+  /* ---------- Buttons ---------- */
+  .btn-primary{ background:var(--gold); color:#1a0d00; padding:14px 22px; border-radius:10px; font-weight:600; font-size:0.98rem; border:none; cursor:pointer; box-shadow:0 0 18px rgba(255,106,0,0.3); width:100%; }
+  .btn-primary:hover{background:var(--gold-soft);}
+  .btn-primary:disabled{opacity:0.5; cursor:not-allowed; box-shadow:none;}
+  .btn-ghost{ border:1px solid var(--line); padding:14px 22px; border-radius:10px; font-weight:600; font-size:0.95rem; color:var(--text); background:none; cursor:pointer; }
   .btn-ghost:hover{border-color:var(--gold-soft);}
-  .btn-small{ background:var(--bg-panel-2); border:1px solid var(--line); color:var(--text); padding:8px 14px; border-radius:7px; font-size:0.85rem; cursor:pointer; }
-  .btn-small:hover{border-color:var(--gold-soft);}
+  .btn-text{ background:none; border:none; color:var(--text-dim); font-size:0.9rem; cursor:pointer; padding:10px; }
+  .btn-text:hover{color:var(--text);}
 
-  .grid-cards{display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:18px;}
-  .card{background:var(--bg-panel); border:1px solid var(--line); border-radius:14px; padding:22px;}
-  .card h3{font-size:1.1rem; margin-bottom:6px;}
-  .card p{color:var(--text-dim); font-size:0.9rem;}
-  .rating-badge{display:inline-flex; align-items:center; gap:4px; color:var(--gold-soft); font-size:0.85rem; margin-top:8px;}
+  /* ---------- Cards ---------- */
+  .card{background:var(--bg-panel); border:1px solid var(--line); border-radius:14px; padding:18px;}
+  .card h3{font-size:1.05rem; margin-bottom:4px;}
+  .card p{color:var(--text-dim); font-size:0.88rem;}
+  .hscroll{display:flex; gap:12px; overflow-x:auto; padding-bottom:4px; -webkit-overflow-scrolling:touch; scrollbar-width:none;}
+  .hscroll::-webkit-scrollbar{display:none;}
+  .hscroll > *{flex:0 0 auto;}
 
-  form{background:var(--bg-panel); border:1px solid var(--line); border-radius:16px; padding:28px; display:flex; flex-direction:column; gap:16px;}
+  /* ---------- Selectable option (service/staff/date/time) ---------- */
+  .option{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    background:var(--bg-panel); border:1.5px solid var(--line); border-radius:12px;
+    padding:14px 16px; cursor:pointer; margin-bottom:10px; text-align:left; width:100%;
+  }
+  .option:hover{border-color:#5a4432;}
+  .option.selected{ border-color:var(--gold); background:var(--bg-panel-2); box-shadow:0 0 0 1px var(--gold) inset; }
+  .option .opt-main{font-weight:600; font-size:0.96rem;}
+  .option .opt-sub{color:var(--text-dim); font-size:0.82rem; margin-top:2px;}
+  .option .opt-check{ width:22px; height:22px; border-radius:50%; border:1.5px solid var(--line); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:0.8rem; }
+  .option.selected .opt-check{ background:var(--gold); border-color:var(--gold); color:#1a0d00; }
+
+  .chip{ padding:10px 16px; border-radius:20px; border:1.5px solid var(--line); background:var(--bg-panel); font-size:0.88rem; cursor:pointer; white-space:nowrap; }
+  .chip.selected{ background:var(--gold); border-color:var(--gold); color:#1a0d00; font-weight:600; }
+  .time-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+  @media (min-width:480px){ .time-grid{grid-template-columns:repeat(4,1fr);} }
+  .time-slot{ padding:12px 6px; border-radius:10px; border:1.5px solid var(--line); background:var(--bg-panel); font-size:0.85rem; cursor:pointer; text-align:center; }
+  .time-slot.selected{ background:var(--gold); border-color:var(--gold); color:#1a0d00; font-weight:600; }
+
+  input{
+    width:100%; background:var(--bg); border:1px solid var(--line); border-radius:8px;
+    padding:13px 14px; color:var(--text); font-size:0.95rem; font-family:'Inter',sans-serif;
+  }
+  input:focus{border-color:var(--gold-soft);}
   label{font-size:0.85rem; color:var(--text-dim); margin-bottom:6px; display:block;}
-  input, select{ width:100%; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:12px 14px; color:var(--text); font-size:0.95rem; font-family:'Inter',sans-serif; }
-  input:focus, select:focus{border-color:var(--gold-soft);}
-  .field{display:flex; flex-direction:column;}
-  .toggle-row{display:flex; gap:10px;}
-  .toggle-btn{ flex:1; padding:12px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--text-dim); cursor:pointer; font-size:0.9rem; text-align:center; }
-  .toggle-btn.active{ background:var(--gold); color:#231407; border-color:var(--gold); font-weight:600; }
-  #bookMsg{font-size:0.9rem; padding:6px 0; min-height:20px;}
-  #bookMsg.ok{color:var(--success);}
-  #bookMsg.err{color:var(--danger);}
+  .field{margin-bottom:16px;}
 
-  .token-result{background:var(--bg-panel-2); border:1px solid var(--gold); border-radius:14px; padding:24px; text-align:center; display:none;}
-  .token-result.show{display:block;}
-  .token-result .tok{font-family:'Fraunces',serif; font-size:2.6rem; color:var(--gold-soft); margin:8px 0;}
-  .token-result .sub{color:var(--text-dim); font-size:0.9rem; margin-top:4px;}
-  .loyalty-note{color:var(--gold-soft); font-size:0.85rem; margin-top:10px;}
+  /* ---------- Progress steps ---------- */
+  .progress-row{display:flex; align-items:center; gap:6px; margin-bottom:22px; overflow-x:auto; scrollbar-width:none;}
+  .progress-row::-webkit-scrollbar{display:none;}
+  .progress-step{display:flex; align-items:center; gap:6px; flex-shrink:0;}
+  .progress-dot{ width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.7rem; border:1.5px solid var(--line); color:var(--text-dim); flex-shrink:0; }
+  .progress-dot.done{background:var(--success); border-color:var(--success); color:#08170f;}
+  .progress-dot.current{background:var(--gold); border-color:var(--gold); color:#1a0d00; font-weight:700;}
+  .progress-label{font-size:0.72rem; color:var(--text-dim); white-space:nowrap;}
+  .progress-label.current{color:var(--text); font-weight:600;}
+  .progress-line{width:16px; height:1.5px; background:var(--line); flex-shrink:0;}
 
-  .staff-board{background:var(--bg-panel); border:1px solid var(--line); border-radius:14px; padding:20px; margin-bottom:16px;}
-  .staff-board-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;}
-  .staff-board-head .name{font-family:'Fraunces',serif; font-size:1.05rem;}
-  .live-dot{display:inline-flex; align-items:center; gap:6px; font-size:0.8rem; color:var(--success);}
-  .live-dot::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--success); box-shadow:0 0 0 3px rgba(94,174,122,0.2);}
-  .now-serving{background:linear-gradient(135deg, var(--bg-panel-2), var(--bg-panel)); border:1px solid var(--line); border-radius:12px; padding:18px; text-align:center; margin-bottom:12px;}
-  .now-serving .label{font-size:0.8rem; color:var(--text-dim); margin-bottom:4px;}
-  .now-serving .tok{font-family:'Fraunces',serif; font-size:2.2rem; color:var(--gold-soft);}
-  .queue-list{display:flex; flex-direction:column; gap:8px;}
-  .qrow{display:flex; justify-content:space-between; align-items:center; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:10px 14px; font-size:0.88rem;}
-  .qrow .tok-mini{font-weight:600; color:var(--gold-soft); min-width:36px;}
-  .qrow .eta{color:var(--text-dim); font-size:0.8rem;}
+  /* ---------- Sticky bottom action bar (wizard) ---------- */
+  .sticky-bar{
+    position:fixed; left:0; right:0; bottom:var(--nav-h); z-index:55;
+    background:rgba(20,15,11,0.97); backdrop-filter:blur(14px); border-top:1px solid var(--line);
+    padding:12px 20px calc(12px + env(safe-area-inset-bottom));
+  }
+  .sticky-bar .wrap{ max-width:720px; margin:0 auto; padding:0; display:flex; align-items:center; gap:12px; }
+  .sticky-price{flex:0 0 auto; font-family:'Fraunces',serif; color:var(--gold-soft); font-size:1.05rem; min-width:60px;}
+  .sticky-bar .btn-primary{flex:1;}
+  .sticky-back{flex:0 0 auto; background:none; border:1px solid var(--line); color:var(--text); border-radius:10px; padding:14px 16px; cursor:pointer;}
 
-  .services{display:grid; grid-template-columns:repeat(2,1fr); gap:12px;}
-  @media (max-width:700px){ .services{grid-template-columns:1fr;} }
-  .svc{display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px solid var(--line); padding:12px 4px; font-size:0.95rem;}
-  .svc .meta{color:var(--text-dim); font-size:0.8rem;}
-  .svc .price{color:var(--gold-soft); font-weight:600;}
+  /* ---------- Skeleton loading ---------- */
+  @keyframes shimmer{ 0%{background-position:-200px 0;} 100%{background-position:200px 0;} }
+  .skel{ background:linear-gradient(90deg, var(--bg-panel) 25%, var(--bg-panel-2) 37%, var(--bg-panel) 63%); background-size:400px 100%; animation:shimmer 1.4s infinite linear; border-radius:8px; }
+  .skel-line{height:14px; margin-bottom:10px; border-radius:6px;}
+  .skel-card{height:80px; border-radius:14px; margin-bottom:10px;}
 
-  .stars{display:flex; gap:8px; justify-content:center; font-size:2rem; margin:16px 0; cursor:pointer;}
-  .stars span{color:var(--line); transition:color 0.15s;}
-  .stars span.active{color:var(--gold-soft);}
+  /* ---------- Empty / error states ---------- */
+  .state-box{ text-align:center; padding:36px 20px; color:var(--text-dim); }
+  .state-box .state-icon{font-size:2rem; margin-bottom:10px;}
+  .state-box h3{color:var(--text); font-size:1.05rem; margin-bottom:6px;}
+  .state-box p{font-size:0.9rem; margin-bottom:16px;}
+  .state-box .btn-ghost{width:auto; display:inline-block;}
 
-  footer{border-top:1px solid var(--line); padding:40px 0 28px;}
-  .foot-grid{display:flex; justify-content:space-between; flex-wrap:wrap; gap:20px;}
-  .foot-grid p{color:var(--text-dim); font-size:0.9rem; max-width:40ch;}
-  .foot-right{text-align:right; font-size:0.9rem; color:var(--text-dim);}
+  /* ---------- Home hero ---------- */
+  .hero-gallery{ display:flex; gap:8px; overflow-x:auto; margin-bottom:16px; scrollbar-width:none; }
+  .hero-gallery::-webkit-scrollbar{display:none;}
+  .hero-gallery img{ width:220px; height:140px; object-fit:cover; border-radius:12px; flex-shrink:0; }
+  .rating-line{display:flex; align-items:center; gap:6px; color:var(--gold-soft); font-size:0.9rem; margin:6px 0 4px;}
+  .salon-title{font-size:clamp(1.5rem,4vw,2rem); margin-bottom:4px; text-shadow:0 0 20px rgba(255,106,0,0.25);}
+  .salon-meta{color:var(--text-dim); font-size:0.88rem; margin-bottom:14px;}
+  .action-row{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:24px;}
+  .action-row .btn-ghost{width:auto; flex:1; min-width:130px; text-align:center; padding:12px 14px; font-size:0.88rem;}
+
+  .services{display:flex; flex-direction:column; gap:0;}
+  .svc-row{display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px solid var(--line); padding:14px 2px; font-size:0.95rem;}
+  .svc-row .meta{color:var(--text-dim); font-size:0.8rem; margin-top:2px;}
+  .svc-row .price{color:var(--gold-soft); font-weight:600; white-space:nowrap;}
+
+  footer{border-top:1px solid var(--line); padding:32px 0 24px; margin-top:20px;}
+  .foot-grid{display:flex; justify-content:space-between; flex-wrap:wrap; gap:16px;}
+  .foot-grid p{color:var(--text-dim); font-size:0.85rem; max-width:40ch;}
+  .foot-right{text-align:right; font-size:0.85rem; color:var(--text-dim);}
   @media (max-width:600px){ .foot-right{text-align:left;} }
+
+  .directory-hero{padding:40px 0 24px;}
+  .directory-hero .eyebrow{color:var(--gold-soft); font-size:0.88rem; margin-bottom:12px;}
+  .directory-hero h1{font-size:clamp(1.8rem,4.5vw,2.6rem); line-height:1.15; margin-bottom:12px;}
+  .directory-hero p.lede{color:var(--text-dim); font-size:1rem; margin-bottom:24px;}
+  .grid-cards{display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:16px;}
 </style>
 </head>
 <body>
 
 <header>
-  <nav class="wrap">
+  <nav class="topbar">
     <a href="index.html" class="logo"><img src="assets/logo-icon.png" alt="Tejvix" class="logo-mark">Tejvix<span>.</span></a>
-    <div class="navlinks">
-      <a href="#book">Get a Token</a>
-      <a href="#queue">Live Queue</a>
-      <a href="#services">Services</a>
-    </div>
-    <a href="#book" class="navcta">Get a Token</a>
+    <span class="top-action" id="topRightHint"></span>
   </nav>
 </header>
 
 <main>
 
-  <!-- REVIEW VIEW (shown only when URL has ?review=<token_id>) -->
-  <section id="reviewSection" style="display:none;">
+  <!-- ================= REVIEW VIEW (from SMS link: ?review=<token_id>) ================= -->
+  <section id="reviewSection" hidden>
     <div class="wrap" style="max-width:480px;">
-      <div class="section-head">
-        <h2>How was your visit?</h2>
-        <p>Tap a star to rate your experience.</p>
-      </div>
+      <div class="section-head"><h2>How was your visit?</h2><p>Tap a star to rate your experience.</p></div>
       <div class="card">
-        <div class="stars" id="starPicker">
+        <div style="display:flex; gap:8px; justify-content:center; font-size:2rem; margin:16px 0; cursor:pointer;" id="starPicker">
           <span data-v="1">★</span><span data-v="2">★</span><span data-v="3">★</span><span data-v="4">★</span><span data-v="5">★</span>
         </div>
         <div class="field">
           <label for="reviewComment">Comment (optional)</label>
           <input type="text" id="reviewComment" placeholder="Anything you'd like to add...">
         </div>
-        <button class="btn-primary" id="submitReview" style="margin-top:12px;">Submit Rating</button>
+        <button class="btn-primary" id="submitReview">Submit Rating</button>
         <div id="reviewMsg" style="margin-top:10px; font-size:0.9rem;"></div>
       </div>
     </div>
   </section>
 
-  <!-- DIRECTORY VIEW -->
-  <section class="hero" id="directorySection">
+  <!-- ================= DIRECTORY VIEW (no ?salon= in URL) ================= -->
+  <section id="directorySection" class="directory-hero" hidden>
     <div class="wrap">
       <div class="eyebrow">Muzaffarpur's local salons, online</div>
       <h1>Choose your salon</h1>
-      <p class="lede">Pick a salon below to book a token and see their live queue — no more standing in line.</p>
-      <div class="grid-cards" id="salonCards"><div class="card"><p>Loading salons...</p></div></div>
+      <p class="lede">Pick a salon to see live queues, book a token, or reserve a slot in advance.</p>
+      <div class="grid-cards" id="salonCards"></div>
     </div>
   </section>
 
-  <!-- SALON VIEW -->
-  <div id="salonSections" style="display:none;">
+  <!-- ================= SALON APP (tabs + bottom nav) ================= -->
+  <div id="salonApp" hidden>
 
-    <section class="hero">
-      <div class="wrap">
-        <div class="eyebrow" id="salonEyebrow">Local salon</div>
-        <h1 id="salonHeadline">No more standing in line.</h1>
-        <p class="lede" id="salonLede">Book your token, get an SMS update when your turn is close.</p>
-        <div class="hero-actions">
-          <a href="#book" class="btn-primary">Get Your Token</a>
-          <a href="#queue" class="btn-ghost">See Live Queue</a>
-          <a href="#" id="whatsappBtn" class="btn-ghost" target="_blank" style="display:none;">💬 WhatsApp</a>
-          <a href="#" id="directionsBtn" class="btn-ghost" target="_blank" style="display:none;">📍 Get Directions</a>
-          <a href="index.html" class="btn-ghost">← All Salons</a>
-        </div>
-        <div id="gallerySection" style="display:none; margin-top:28px;">
-          <div class="grid-cards" id="galleryGrid"></div>
-        </div>
-      </div>
-    </section>
-
-    <section id="mapSection" style="display:none; padding-top:0;">
-      <div class="wrap">
-        <div class="section-head"><h2>Find us</h2></div>
-        <iframe id="mapEmbed" width="100%" height="320" style="border:1px solid var(--line); border-radius:14px;" loading="lazy"></iframe>
-      </div>
-    </section>
-
-    <section id="book">
-      <div class="wrap" style="display:grid; grid-template-columns:1fr 1fr; gap:40px;">
-        <div>
-          <div class="section-head">
-            <h2>Book your token</h2>
-            <p>Choose walk-in for now, or book a slot for later.</p>
-          </div>
-          <form id="bookForm">
-            <div class="toggle-row">
-              <button type="button" class="toggle-btn active" id="walkinToggle">Walk-in now</button>
-              <button type="button" class="toggle-btn" id="apptToggle">Book for later</button>
-            </div>
-            <div class="field">
-              <label for="fname">Your name</label>
-              <input type="text" id="fname" required placeholder="e.g. Rahul Kumar">
-            </div>
-            <div class="field">
-              <label for="fphone">Mobile number</label>
-              <input type="tel" id="fphone" required placeholder="+91 98xxxxxxx" pattern="^\+?[0-9]{10,13}$">
-            </div>
-            <div class="field">
-              <label for="fservice">Service</label>
-              <select id="fservice" required><option value="">Loading...</option></select>
-            </div>
-            <div class="field" id="staffField" style="display:none;">
-              <label for="fstaff">Barber</label>
-              <select id="fstaff"><option value="">Any available</option></select>
-            </div>
-            <div class="field" id="dateField" style="display:none;">
-              <label for="fdate">Date</label>
-              <select id="fdate"></select>
-            </div>
-            <div class="field" id="timeField" style="display:none;">
-              <label for="ftime">Time</label>
-              <select id="ftime"></select>
-            </div>
-            <div class="field" id="paymentNote" style="display:none;">
-              <p style="color:var(--text-dim); font-size:0.85rem;">💳 Advance booking requires payment via Razorpay to confirm your slot.</p>
-            </div>
-            <button type="submit" class="btn-primary">Get Token</button>
-            <div id="bookMsg"></div>
-          </form>
-        </div>
-
-        <div class="token-result" id="tokenResult">
-          <div class="label" style="color:var(--text-dim); font-size:0.85rem;">Your token</div>
-          <div class="tok" id="tokenNumber">T—</div>
-          <div class="sub" id="tokenSub"></div>
-          <div class="loyalty-note" id="loyaltyNote"></div>
-          <div id="paymentSection" style="display:none; margin-top:18px; padding-top:18px; border-top:1px solid var(--line);">
-            <div class="label" style="color:var(--text-dim); font-size:0.85rem; margin-bottom:10px;">Pay for your service (optional)</div>
-            <img id="paymentQr" src="" alt="Payment QR" style="width:160px; height:160px; border-radius:10px; background:#fff; padding:8px;">
-            <div style="color:var(--text-dim); font-size:0.8rem; margin-top:8px;">Scan with any UPI app — GPay, PhonePe, Paytm, etc.</div>
+    <!-- ---- HOME TAB ---- -->
+    <div id="tab-home" class="tab-panel">
+      <section style="padding-top:24px;">
+        <div class="wrap">
+          <div class="hero-gallery" id="heroGallery" hidden></div>
+          <div class="rating-line" id="homeRating" hidden></div>
+          <h1 class="salon-title" id="salonHeadline">Loading...</h1>
+          <p class="salon-meta" id="salonMeta"></p>
+          <button class="btn-primary" id="heroBookBtn" style="max-width:280px;">Book Appointment</button>
+          <div class="action-row" style="margin-top:16px;">
+            <a href="#" id="whatsappBtn" class="btn-ghost" target="_blank" hidden>💬 WhatsApp</a>
+            <a href="#" id="directionsBtn" class="btn-ghost" target="_blank" hidden>📍 Directions</a>
           </div>
         </div>
+      </section>
 
-        <!-- Step 2 of advance booking: scan & self-confirm payment -->
-        <div class="token-result" id="apptPaymentStep" style="display:none;">
-          <div class="label" style="color:var(--text-dim); font-size:0.85rem;">Scan to pay</div>
-          <img id="apptQr" src="" alt="Payment QR" style="width:180px; height:180px; border-radius:10px; background:#fff; padding:10px; margin:10px 0;">
-          <div class="sub" id="apptAmount"></div>
-          <div style="color:var(--text-dim); font-size:0.8rem; margin:10px 0 16px;">Scan with any UPI app — GPay, PhonePe, Paytm, etc. — then confirm below.</div>
-          <button type="button" class="btn-primary" id="apptPaidBtn">I have completed the payment ✓</button>
-          <div id="apptPaidMsg" style="margin-top:10px; font-size:0.9rem;"></div>
+      <section>
+        <div class="wrap">
+          <div class="section-head"><h2>Popular Services</h2></div>
+          <div id="popularServices"><div class="skel skel-card"></div><div class="skel skel-card"></div></div>
+          <a href="#" class="section-link" data-nav="services">View all services →</a>
         </div>
+      </section>
 
-        <!-- Step 3: invoice + notify salon -->
-        <div class="token-result" id="apptInvoice" style="display:none; text-align:left;">
-          <div class="label" style="color:var(--text-dim); font-size:0.85rem; text-align:center;">Booking Confirmed ✓</div>
-          <h3 style="text-align:center; margin:8px 0 16px;">Invoice</h3>
-          <div id="invoiceDetails" style="font-size:0.92rem; line-height:1.9;"></div>
-          <div style="display:flex; gap:10px; margin-top:18px; flex-wrap:wrap;">
-            <button type="button" class="btn-ghost" onclick="window.print()" style="flex:1;">🖨️ Print / Save</button>
-            <a href="#" id="whatsappNotifyBtn" target="_blank" class="btn-primary" style="flex:1; text-align:center;">📲 Notify Salon</a>
-          </div>
+      <section>
+        <div class="wrap">
+          <div class="section-head"><h2>Our Team</h2></div>
+          <div class="hscroll" id="teamPreview"><div class="skel skel-card" style="width:140px;"></div></div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section id="queue">
-      <div class="wrap">
-        <div class="section-head">
-          <h2>Live queue board</h2>
-          <p>Each barber has their own queue — refreshes every 5 seconds.</p>
+      <section>
+        <div class="wrap">
+          <div class="section-head"><h2>Reviews</h2></div>
+          <div id="reviewsPreview" class="card"><p style="color:var(--text-dim);">No reviews yet — be the first!</p></div>
         </div>
-        <div id="staffBoards"><div class="card"><p>Loading...</p></div></div>
-      </div>
-    </section>
+      </section>
 
-    <section id="services">
-      <div class="wrap">
-        <div class="section-head"><h2>Services & pricing</h2></div>
-        <div class="services" id="servicesList"><p>Loading...</p></div>
-      </div>
-    </section>
+      <section id="mapSection" hidden>
+        <div class="wrap">
+          <div class="section-head"><h2>Find us</h2></div>
+          <iframe id="mapEmbed" width="100%" height="260" style="border:1px solid var(--line); border-radius:14px;" loading="lazy"></iframe>
+        </div>
+      </section>
+    </div>
+
+    <!-- ---- SERVICES TAB ---- -->
+    <div id="tab-services" class="tab-panel" hidden>
+      <section style="padding-top:24px;">
+        <div class="wrap">
+          <div class="section-head"><h2>Services & Pricing</h2></div>
+          <div class="services" id="servicesFullList"><div class="skel skel-line"></div><div class="skel skel-line"></div></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ---- QUEUE TAB ---- -->
+    <div id="tab-queue" class="tab-panel" hidden>
+      <section style="padding-top:24px;">
+        <div class="wrap">
+          <div class="section-head"><h2>Live Queue</h2><p>Each barber's queue updates every 5 seconds.</p></div>
+          <div id="staffBoards"><div class="skel skel-card"></div></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ---- BOOK TAB (wizard) ---- -->
+    <div id="tab-book" class="tab-panel" hidden>
+      <section style="padding-top:24px; padding-bottom:140px;">
+        <div class="wrap">
+          <div class="progress-row" id="wizardProgress"></div>
+          <div id="wizardContent"></div>
+        </div>
+      </section>
+    </div>
 
   </div>
+
+  <footer id="contact">
+    <div class="wrap foot-grid">
+      <div>
+        <div class="logo" id="footerLogo"><img src="assets/logo-icon.png" alt="Tejvix" class="logo-mark">Tejvix<span>.</span></div>
+        <p id="footerBlurb">A platform for local salons in Muzaffarpur to run their own live token queue.</p>
+        <p style="margin-top:10px; font-size:0.85rem;">
+          <a href="my-bookings.html" style="color:var(--gold-soft);">My Bookings</a>
+          &nbsp;·&nbsp;
+          <a href="privacy.html" style="color:var(--gold-soft);">Privacy Policy</a>
+          &nbsp;·&nbsp;
+          <a href="terms.html" style="color:var(--gold-soft);">Terms &amp; Conditions</a>
+        </p>
+      </div>
+      <div class="foot-right" id="footerRight">
+        <div>Muzaffarpur, Bihar</div>
+        <div>© 2026 Tejvix</div>
+      </div>
+    </div>
+  </footer>
 </main>
 
-<footer id="contact">
-  <div class="wrap foot-grid">
-    <div>
-      <div class="logo" id="footerLogo"><img src="assets/logo-icon.png" alt="Tejvix" class="logo-mark">Tejvix<span>.</span></div>
-      <p id="footerBlurb">A platform for local salons in Muzaffarpur to run their own live token queue.</p>
-      <p style="margin-top:10px; font-size:0.85rem;">
-        <a href="privacy.html" style="color:var(--gold-soft);">Privacy Policy</a>
-        &nbsp;·&nbsp;
-        <a href="terms.html" style="color:var(--gold-soft);">Terms &amp; Conditions</a>
-      </p>
-    </div>
-    <div class="foot-right" id="footerRight">
-      <div>Muzaffarpur, Bihar</div>
-      <div>© 2026 Tejvix</div>
-    </div>
-  </div>
-</footer>
+<!-- ================= BOTTOM NAV ================= -->
+<nav class="bottom-nav" id="bottomNav" hidden>
+  <button class="nav-btn active" data-tab="home"><span class="ic">🏠</span>Home</button>
+  <button class="nav-btn" data-tab="services"><span class="ic">✂️</span>Services</button>
+  <button class="nav-btn" data-tab="queue"><span class="ic">⏱️</span>Queue</button>
+  <button class="nav-btn" data-tab="book"><span class="ic">📅</span>Book</button>
+</nav>
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
@@ -318,91 +326,15 @@
   const reviewTokenId = params.get('review');
 
   const directorySection = document.getElementById('directorySection');
-  const salonSections = document.getElementById('salonSections');
+  const salonApp = document.getElementById('salonApp');
   const reviewSection = document.getElementById('reviewSection');
+  const bottomNav = document.getElementById('bottomNav');
 
+  let currentSalon = null;
   let selectedServices = [];
   let selectedStaffList = [];
-  let bookingType = 'walkin';
-
-  // ---------- REVIEW VIEW ----------
-  function setupReviewView(){
-    directorySection.style.display = 'none';
-    salonSections.style.display = 'none';
-    reviewSection.style.display = '';
-
-    let rating = 0;
-    const stars = document.querySelectorAll('#starPicker span');
-    stars.forEach(star => {
-      star.addEventListener('click', () => {
-        rating = Number(star.dataset.v);
-        stars.forEach(s => s.classList.toggle('active', Number(s.dataset.v) <= rating));
-      });
-    });
-
-    document.getElementById('submitReview').addEventListener('click', async () => {
-      const msgEl = document.getElementById('reviewMsg');
-      if (!rating){ msgEl.textContent = "Please tap a star first."; msgEl.style.color = 'var(--danger)'; return; }
-      try{
-        const res = await fetch(`${API_BASE}/reviews`, {
-          method: "POST",
-          headers: {"Content-Type":"application/json"},
-          body: JSON.stringify({ token_id: reviewTokenId, rating, comment: document.getElementById('reviewComment').value })
-        });
-        const data = await res.json();
-        if(!res.ok) throw new Error(data.error);
-        msgEl.textContent = "Thanks for your feedback!";
-        msgEl.style.color = 'var(--success)';
-      }catch(err){
-        msgEl.textContent = "Couldn't submit — please try again.";
-        msgEl.style.color = 'var(--danger)';
-        console.error(err);
-      }
-    });
-  }
-
-  // ---------- DIRECTORY VIEW ----------
-  async function loadDirectory(){
-    directorySection.style.display = '';
-    salonSections.style.display = 'none';
-    const cardsEl = document.getElementById('salonCards');
-    try{
-      const res = await fetch(`${API_BASE}/salons`);
-      const data = await res.json();
-      if(!data.salons || !data.salons.length){
-        cardsEl.innerHTML = `<div class="card"><p>No salons added yet.</p></div>`;
-        return;
-      }
-      const cards = await Promise.all(data.salons.map(async s => {
-        let ratingHtml = '';
-        try{
-          const r = await fetch(`${API_BASE}/reviews?salon=${encodeURIComponent(s.slug)}`);
-          const rd = await r.json();
-          if (rd.count) ratingHtml = `<div class="rating-badge">★ ${rd.average} · ${rd.count} review${rd.count>1?'s':''}</div>`;
-        }catch{}
-        const photo = (s.photos && s.photos[0]) ? `<img src="${s.photos[0]}" alt="${s.name}" style="width:100%; height:140px; object-fit:cover; border-radius:10px; margin-bottom:12px;">` : '';
-        const accent = s.brand_color || 'var(--gold)';
-        return `
-          <div class="card" style="border-top:3px solid ${accent};">
-            ${photo}
-            <h3>${s.name}</h3>
-            <p>${s.address || ''}</p>
-            ${s.phone ? `<p>${s.phone}</p>` : ''}
-            ${ratingHtml}
-            <div style="margin-top:14px;">
-              <a href="?salon=${encodeURIComponent(s.slug)}" class="btn-primary" style="background:${accent};">View live queue & book →</a>
-            </div>
-          </div>`;
-      }));
-      cardsEl.innerHTML = cards.join('');
-    }catch(err){
-      cardsEl.innerHTML = `<div class="card"><p>Couldn't load salons — check the backend/functions.</p></div>`;
-      console.error(err);
-    }
-  }
-
-  // ---------- SALON VIEW ----------
-  let currentSalon = null;
+  let selectedProducts = [];
+  let latestQueueData = null;
 
   function lightenColor(hex, percent){
     try{
@@ -421,404 +353,207 @@
     tag.content = text;
   }
 
+  function emptyState(icon, title, desc){
+    return `<div class="state-box"><div class="state-icon">${icon}</div><h3>${title}</h3><p>${desc}</p></div>`;
+  }
+
+  function errorState(desc, retryFn){
+    const id = 'retry_' + Math.random().toString(36).slice(2, 8);
+    setTimeout(() => {
+      const btn = document.getElementById(id);
+      if (btn && retryFn) btn.addEventListener('click', retryFn);
+    }, 0);
+    return `<div class="state-box"><div class="state-icon">⚠️</div><h3>Something went wrong</h3><p>${desc}</p><button class="btn-ghost" id="${id}">Try Again</button></div>`;
+  }
+
+  // ================= TAB NAVIGATION =================
+  function switchTab(tabName){
+    document.querySelectorAll('.tab-panel').forEach(el => el.hidden = true);
+    document.getElementById('tab-' + tabName).hidden = false;
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tabName));
+    window.scrollTo(0, 0);
+    if (tabName === 'book'){
+      startWizard();
+    } else {
+      const bar = document.getElementById('wizardStickyBar');
+      if (bar) bar.style.display = 'none';
+    }
+  }
+  document.querySelectorAll('.nav-btn').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+  document.querySelectorAll('[data-nav]').forEach(el => el.addEventListener('click', (e) => { e.preventDefault(); switchTab(el.dataset.nav); }));
+  document.getElementById('heroBookBtn').addEventListener('click', () => switchTab('book'));
+
+  // ================= REVIEW VIEW =================
+  function setupReviewView(){
+    directorySection.hidden = true;
+    salonApp.hidden = true;
+    bottomNav.hidden = true;
+    reviewSection.hidden = false;
+
+    let rating = 0;
+    const stars = document.querySelectorAll('#starPicker span');
+    stars.forEach(star => {
+      star.addEventListener('click', () => {
+        rating = Number(star.dataset.v);
+        stars.forEach(s => s.style.color = Number(s.dataset.v) <= rating ? 'var(--gold-soft)' : 'var(--line)');
+      });
+    });
+    document.getElementById('submitReview').addEventListener('click', async () => {
+      const msgEl = document.getElementById('reviewMsg');
+      if (!rating){ msgEl.textContent = "Please tap a star first."; msgEl.style.color = 'var(--danger)'; return; }
+      try{
+        const res = await fetch(`${API_BASE}/reviews`, {
+          method: "POST", headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ token_id: reviewTokenId, rating, comment: document.getElementById('reviewComment').value })
+        });
+        const data = await res.json();
+        if(!res.ok) throw new Error(data.error);
+        msgEl.textContent = "Thanks for your feedback!";
+        msgEl.style.color = 'var(--success)';
+      }catch(err){
+        msgEl.textContent = "Couldn't submit — please try again.";
+        msgEl.style.color = 'var(--danger)';
+        console.error(err);
+      }
+    });
+  }
+
+  // ================= DIRECTORY VIEW =================
+  async function loadDirectory(){
+    directorySection.hidden = false;
+    salonApp.hidden = true;
+    bottomNav.hidden = true;
+    const cardsEl = document.getElementById('salonCards');
+    cardsEl.innerHTML = `<div class="skel skel-card"></div><div class="skel skel-card"></div>`;
+    try{
+      const res = await fetch(`${API_BASE}/salons`);
+      const data = await res.json();
+      if(!data.salons || !data.salons.length){
+        cardsEl.innerHTML = emptyState('🏪', 'No salons yet', "Check back soon — new salons are added regularly.");
+        return;
+      }
+      const cards = await Promise.all(data.salons.map(async s => {
+        let ratingHtml = '';
+        try{
+          const r = await fetch(`${API_BASE}/reviews?salon=${encodeURIComponent(s.slug)}`);
+          const rd = await r.json();
+          if (rd.count) ratingHtml = `<div class="rating-line" style="margin:6px 0 0;">★ ${rd.average} · ${rd.count} review${rd.count>1?'s':''}</div>`;
+        }catch{}
+        const photo = (s.photos && s.photos[0]) ? `<img src="${s.photos[0]}" alt="${s.name}" style="width:100%; height:130px; object-fit:cover; border-radius:10px; margin-bottom:12px;">` : '';
+        const accent = s.brand_color || 'var(--gold)';
+        return `
+          <div class="card" style="border-top:3px solid ${accent};">
+            ${photo}
+            <h3>${s.name}</h3>
+            <p>${s.address || ''}</p>
+            ${ratingHtml}
+            <a href="?salon=${encodeURIComponent(s.slug)}" class="btn-primary" style="background:${accent}; margin-top:14px; display:block; text-align:center;">View & Book →</a>
+          </div>`;
+      }));
+      cardsEl.innerHTML = cards.join('');
+    }catch(err){
+      cardsEl.innerHTML = errorState("We couldn't load salons.", loadDirectory);
+      console.error(err);
+    }
+  }
+
+  // ================= SALON HOME =================
   function applySalonBranding(salon){
     currentSalon = salon;
-    document.title = `${salon.name} — Token & Queue Booking`;
-    setMetaDescription(`Book a token at ${salon.name}${salon.address ? ' in ' + salon.address : ''} and track the live queue — no more standing in line.`);
+    document.title = `${salon.name} — Book & Live Queue`;
+    setMetaDescription(`Book a token or appointment at ${salon.name}${salon.address ? ' in ' + salon.address : ''} and track the live queue.`);
 
-    document.getElementById('salonEyebrow').textContent = salon.address || 'Local salon';
-    document.getElementById('salonHeadline').textContent = `No more standing in line at ${salon.name}.`;
-    document.getElementById('salonLede').textContent = `Book your token at ${salon.name}, get an SMS update when your turn is close.`;
-    document.getElementById('footerLogo').innerHTML = `${salon.name}<span>.</span>`;
+    document.getElementById('salonHeadline').textContent = salon.name;
+    document.getElementById('salonMeta').textContent = salon.address || '';
+    document.getElementById('footerLogo').innerHTML = `<img src="assets/logo-icon.png" class="logo-mark" alt="">${salon.name}<span>.</span>`;
     document.getElementById('footerBlurb').textContent = `${salon.name} — ${salon.address || 'Muzaffarpur'}.`;
-    document.getElementById('footerRight').innerHTML = `
-      <div>${salon.address || ''}</div>
-      ${salon.phone ? `<div>${salon.phone}</div>` : ''}
-      <div>© 2026 ${salon.name}</div>`;
+    document.getElementById('footerRight').innerHTML = `<div>${salon.address||''}</div>${salon.phone?`<div>${salon.phone}</div>`:''}<div>© 2026 ${salon.name}</div>`;
 
-    // Per-salon brand color override (falls back to the default orange theme)
     if (salon.brand_color){
       document.documentElement.style.setProperty('--gold', salon.brand_color);
       document.documentElement.style.setProperty('--gold-soft', lightenColor(salon.brand_color, 0.25));
     }
-
-    // WhatsApp button
     if (salon.phone){
       const digits = salon.phone.replace(/[^0-9]/g, '');
-      document.getElementById('whatsappBtn').href = `https://wa.me/${digits}?text=${encodeURIComponent('Hi ' + salon.name + ', I have a question.')}`;
-      document.getElementById('whatsappBtn').style.display = '';
+      const wa = document.getElementById('whatsappBtn');
+      wa.href = `https://wa.me/${digits}?text=${encodeURIComponent('Hi ' + salon.name + ', I have a question.')}`;
+      wa.hidden = false;
     }
-
-    // Google Maps embed + Directions (address-based, no API key needed)
     if (salon.address){
       const q = encodeURIComponent(`${salon.name}, ${salon.address}`);
       document.getElementById('mapEmbed').src = `https://www.google.com/maps?q=${q}&output=embed`;
-      document.getElementById('mapSection').style.display = '';
-      const dBtn = document.getElementById('directionsBtn');
-      dBtn.href = `https://www.google.com/maps/dir/?api=1&destination=${q}`;
-      dBtn.style.display = '';
+      document.getElementById('mapSection').hidden = false;
+      const d = document.getElementById('directionsBtn');
+      d.href = `https://www.google.com/maps/dir/?api=1&destination=${q}`;
+      d.hidden = false;
     }
-
-    // Photo gallery
     if (salon.photos && salon.photos.length){
-      document.getElementById('galleryGrid').innerHTML = salon.photos.map(url => `
-        <div class="card" style="padding:0; overflow:hidden;">
-          <img src="${url}" alt="${salon.name}" style="width:100%; height:160px; object-fit:cover; display:block;">
-        </div>`).join('');
-      document.getElementById('gallerySection').style.display = '';
+      document.getElementById('heroGallery').innerHTML = salon.photos.map(url => `<img src="${url}" alt="${salon.name}">`).join('');
+      document.getElementById('heroGallery').hidden = false;
     }
   }
 
-  function showPaymentQr(serviceId){
-    const section = document.getElementById('paymentSection');
-    const img = document.getElementById('paymentQr');
-    if (!currentSalon) { section.style.display = 'none'; return; }
-
-    if (currentSalon.payment_qr_url){
-      img.src = currentSalon.payment_qr_url;
-      section.style.display = '';
-      return;
-    }
-    if (currentSalon.upi_id){
-      const svc = selectedServices.find(s => s.id === serviceId);
-      const amount = svc ? svc.price : '';
-      const upiUri = `upi://pay?pa=${encodeURIComponent(currentSalon.upi_id)}&pn=${encodeURIComponent(currentSalon.name)}&am=${amount}&cu=INR`;
-      img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUri)}`;
-      section.style.display = '';
-      return;
-    }
-    section.style.display = 'none';
-  }
-
-  async function loadServices(){
-    const sel = document.getElementById('fservice');
-    const listEl = document.getElementById('servicesList');
+  async function loadReviewsPreview(){
     try{
-      const res = await fetch(`${API_BASE}/services?salon=${encodeURIComponent(salonSlug)}`);
+      const res = await fetch(`${API_BASE}/reviews?salon=${encodeURIComponent(salonSlug)}`);
       const data = await res.json();
-      selectedServices = data.services || [];
-      sel.innerHTML = selectedServices.map(s => `<option value="${s.id}">${s.name} — ₹${s.price} (${s.duration_minutes} min)</option>`).join('');
-      listEl.innerHTML = selectedServices.map(s => `
-        <div class="svc">
-          <span>${s.name}<div class="meta">${s.duration_minutes} min</div></span>
-          <span class="price">₹${s.price}</span>
-        </div>`).join('') || '<p>No services listed yet.</p>';
-    }catch(err){
-      sel.innerHTML = `<option value="">Couldn't load services</option>`;
-      console.error(err);
-    }
-  }
-
-  async function loadStaffOptions(){
-    const sel = document.getElementById('fstaff');
-    const field = document.getElementById('staffField');
-    try{
-      const res = await fetch(`${API_BASE}/staff?salon=${encodeURIComponent(salonSlug)}`);
-      const data = await res.json();
-      selectedStaffList = data.staff || [];
-      if (selectedStaffList.length > 1){
-        sel.innerHTML = `<option value="">Any available</option>` + selectedStaffList.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-        field.style.display = '';
-      } else {
-        field.style.display = 'none';
+      if (data.count){
+        const ratingEl = document.getElementById('homeRating');
+        ratingEl.innerHTML = `★ ${data.average} · ${data.count} review${data.count>1?'s':''}`;
+        ratingEl.hidden = false;
+        document.getElementById('reviewsPreview').innerHTML = `<p>★ ${data.average} average from ${data.count} review${data.count>1?'s':''}.</p>`;
       }
     }catch(err){ console.error(err); }
   }
 
-  function populateDateOptions(){
-    const sel = document.getElementById('fdate');
-    const options = [];
-    for (let i = 0; i < 7; i++){
-      const d = new Date();
-      d.setDate(d.getDate() + i);
-      const label = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : d.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short' });
-      options.push(`<option value="${d.toISOString().slice(0,10)}">${label}</option>`);
-    }
-    sel.innerHTML = options.join('');
-    populateTimeOptions();
-  }
-
-  function populateTimeOptions(){
-    const dateSel = document.getElementById('fdate');
-    const sel = document.getElementById('ftime');
-    const selectedDate = dateSel.value || new Date().toISOString().slice(0,10);
-    const isToday = selectedDate === new Date().toISOString().slice(0,10);
-    const now = new Date();
-    const options = [];
-    for (let h = 10; h <= 20; h++){
-      for (let m of [0, 30]){
-        if (h === 20 && m === 30) continue;
-        const slot = new Date(selectedDate + 'T00:00:00');
-        slot.setHours(h, m, 0, 0);
-        if (!isToday || slot > now){
-          const label = slot.toLocaleTimeString('en-IN', {hour:'numeric', minute:'2-digit', hour12:true});
-          options.push(`<option value="${slot.toISOString()}">${label}</option>`);
-        }
-      }
-    }
-    sel.innerHTML = options.join('') || `<option value="">No more slots that day</option>`;
-  }
-
-  document.getElementById('fdate').addEventListener('change', populateTimeOptions);
-
-  document.getElementById('walkinToggle').addEventListener('click', () => {
-    bookingType = 'walkin';
-    document.getElementById('walkinToggle').classList.add('active');
-    document.getElementById('apptToggle').classList.remove('active');
-    document.getElementById('dateField').style.display = 'none';
-    document.getElementById('timeField').style.display = 'none';
-    document.getElementById('paymentNote').style.display = 'none';
-  });
-  document.getElementById('apptToggle').addEventListener('click', () => {
-    bookingType = 'appointment';
-    document.getElementById('apptToggle').classList.add('active');
-    document.getElementById('walkinToggle').classList.remove('active');
-    document.getElementById('dateField').style.display = '';
-    document.getElementById('timeField').style.display = '';
-    document.getElementById('paymentNote').style.display = '';
-    populateDateOptions();
-  });
-
-  document.getElementById('bookForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const bookMsg = document.getElementById('bookMsg');
-    const tokenResult = document.getElementById('tokenResult');
-    const name = document.getElementById('fname').value.trim();
-    const phone = document.getElementById('fphone').value.trim();
-    const serviceId = document.getElementById('fservice').value;
-    const staffId = document.getElementById('fstaff').value;
-    const scheduledAt = document.getElementById('ftime').value;
-
-    if (bookingType === 'appointment'){
-      startUpiClaimBooking({ name, phone, serviceId, staffId, scheduledAt });
-      return;
-    }
-
-    bookMsg.textContent = "Booking...";
-    bookMsg.className = "";
-
+  // ================= SERVICES =================
+  async function loadServices(){
+    const popEl = document.getElementById('popularServices');
+    const listEl = document.getElementById('servicesFullList');
     try{
-      const payload = { salon: salonSlug, name, phone, service_id: serviceId, staff_id: staffId, booking_type: 'walkin' };
-      const res = await fetch(`${API_BASE}/book`, {
-        method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(payload)
-      });
+      const res = await fetch(`${API_BASE}/services?salon=${encodeURIComponent(salonSlug)}`);
       const data = await res.json();
-      if(!res.ok) throw new Error(data.error || "Something went wrong");
+      selectedServices = data.services || [];
 
-      document.getElementById('tokenNumber').textContent = data.token;
-      document.getElementById('tokenSub').textContent = `${data.ahead} ahead of you — about ${data.estimated_wait_minutes} min wait.`;
-      document.getElementById('loyaltyNote').textContent = data.loyalty_message || '';
-      tokenResult.classList.add('show');
-      showPaymentQr(serviceId);
-      bookMsg.textContent = "Confirmed! ✓";
-      bookMsg.className = "ok";
-      e.target.reset();
-      loadQueue();
+      if (!selectedServices.length){
+        const msg = emptyState('✂️', 'No services listed', "This salon hasn't added services yet.");
+        popEl.innerHTML = msg; listEl.innerHTML = msg;
+        return;
+      }
+      const row = s => `<div class="svc-row"><span>${s.name}<div class="meta">${s.duration_minutes} min</div></span><span class="price">₹${s.price}</span></div>`;
+      popEl.innerHTML = selectedServices.slice(0, 3).map(row).join('');
+      listEl.innerHTML = selectedServices.map(row).join('');
     }catch(err){
-      bookMsg.textContent = "Couldn't reach the server.";
-      bookMsg.className = "err";
+      const msg = errorState("Couldn't load services.", loadServices);
+      popEl.innerHTML = msg; listEl.innerHTML = msg;
       console.error(err);
     }
-  });
+  }
 
-  async function startUpiClaimBooking({ name, phone, serviceId, staffId, scheduledAt }){
-    const bookMsg = document.getElementById('bookMsg');
-
-    if (!name || !phone){
-      bookMsg.textContent = "Please enter your name and mobile number."; bookMsg.className = "err"; return;
-    }
-    if (!scheduledAt){
-      bookMsg.textContent = "Please choose a date and time."; bookMsg.className = "err"; return;
-    }
-    const svc = selectedServices.find(s => s.id === serviceId);
-    if (!svc){
-      bookMsg.textContent = "Please choose a service."; bookMsg.className = "err"; return;
-    }
-
-    bookMsg.textContent = "Booking your slot...";
-    bookMsg.className = "";
-
+  async function loadStaffPreview(){
+    const teamEl = document.getElementById('teamPreview');
     try{
-      const res = await fetch(`${API_BASE}/book`, {
-        method: "POST", headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ salon: salonSlug, name, phone, service_id: serviceId, staff_id: staffId, booking_type: 'appointment', scheduled_at: scheduledAt })
-      });
+      const res = await fetch(`${API_BASE}/staff?salon=${encodeURIComponent(salonSlug)}`);
       const data = await res.json();
-      if(!res.ok) throw new Error(data.error || "Something went wrong");
-
-      bookMsg.textContent = "Slot reserved! ✓";
-      bookMsg.className = "ok";
-      document.getElementById('tokenResult').classList.remove('show');
-
-      const invoiceData = { ...data, name, phone };
-
-      if (data.payment_needed){
-        showApptPaymentStep(invoiceData);
-      } else {
-        showInvoice(invoiceData, 'Not required');
-      }
-      loadQueue();
+      selectedStaffList = data.staff || [];
+      teamEl.innerHTML = selectedStaffList.length
+        ? selectedStaffList.map(s => `<div class="card" style="width:140px; text-align:center;"><div style="font-size:2rem;">💇</div><h3 style="font-size:0.92rem; margin-top:8px;">${s.name}</h3></div>`).join('')
+        : `<p style="color:var(--text-dim); font-size:0.9rem;">No team members listed.</p>`;
     }catch(err){
-      bookMsg.textContent = "Couldn't reach the server.";
-      bookMsg.className = "err";
+      teamEl.innerHTML = errorState("Couldn't load the team.", loadStaffPreview);
       console.error(err);
     }
   }
 
-  function showApptPaymentStep(invoiceData){
-    const section = document.getElementById('apptPaymentStep');
-    const img = document.getElementById('apptQr');
-    const amountEl = document.getElementById('apptAmount');
-
-    if (invoiceData.payment_qr_url){
-      img.src = invoiceData.payment_qr_url;
-    } else if (invoiceData.upi_id){
-      const upiUri = `upi://pay?pa=${encodeURIComponent(invoiceData.upi_id)}&pn=${encodeURIComponent(invoiceData.salon_name)}&am=${invoiceData.amount}&cu=INR`;
-      img.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiUri)}`;
-    }
-    amountEl.textContent = `Amount: ₹${invoiceData.amount}`;
-    section.classList.add('show');
-    section.style.display = 'block';
-
-    const paidBtn = document.getElementById('apptPaidBtn');
-    const paidMsg = document.getElementById('apptPaidMsg');
-    paidBtn.onclick = async () => {
-      paidBtn.disabled = true;
-      paidBtn.textContent = "Confirming...";
-      try{
-        const res = await fetch(`${API_BASE}/mark-payment-claimed`, {
-          method: "POST", headers: {"Content-Type":"application/json"},
-          body: JSON.stringify({ token_id: invoiceData.booking_id })
-        });
-        const result = await res.json();
-        if(!res.ok) throw new Error(result.error || "Couldn't confirm payment");
-
-        section.style.display = 'none';
-        showInvoice(invoiceData, 'Paid via UPI (self-confirmed)');
-      }catch(err){
-        paidMsg.textContent = "Couldn't confirm — please try again.";
-        paidMsg.style.color = 'var(--danger)';
-        paidBtn.disabled = false;
-        paidBtn.textContent = "I have completed the payment ✓";
-        console.error(err);
-      }
-    };
-  }
-
-  function showInvoice(invoiceData, paymentLabel){
-    const when = new Date(invoiceData.scheduled_at).toLocaleString('en-IN', { day:'numeric', month:'short', hour:'numeric', minute:'2-digit', hour12:true });
-    const invoiceDetails = document.getElementById('invoiceDetails');
-    invoiceDetails.innerHTML = `
-      <div><strong>Salon:</strong> ${invoiceData.salon_name}</div>
-      <div><strong>Customer:</strong> ${invoiceData.name} (${invoiceData.phone})</div>
-      <div><strong>Service:</strong> ${invoiceData.service}</div>
-      <div><strong>Amount:</strong> ₹${invoiceData.amount}</div>
-      <div><strong>Date & time:</strong> ${when}</div>
-      <div><strong>Payment:</strong> ${paymentLabel}</div>
-      <div><strong>Booking ref:</strong> ${invoiceData.booking_id.slice(0,8)}</div>
-    `;
-    const invoiceSection = document.getElementById('apptInvoice');
-    invoiceSection.style.display = 'block';
-
-    if (currentSalon && currentSalon.phone){
-      const digits = currentSalon.phone.replace(/[^0-9]/g, '');
-      const msg = `New appointment booked:\n${invoiceData.name} (${invoiceData.phone})\nService: ${invoiceData.service} — ₹${invoiceData.amount}\nWhen: ${when}\nPayment: ${paymentLabel}`;
-      const waLink = `https://wa.me/${digits}?text=${encodeURIComponent(msg)}`;
-      document.getElementById('whatsappNotifyBtn').href = waLink;
-      // Best-effort auto-open — still within the same click's task, but some
-      // browsers may block it; the visible button below is the reliable fallback.
-      try{ window.open(waLink, '_blank'); }catch{}
-    } else {
-      document.getElementById('whatsappNotifyBtn').style.display = 'none';
-    }
-  }
-
-  async function startRazorpayBooking({ name, phone, serviceId, staffId, scheduledAt }){
-    const bookMsg = document.getElementById('bookMsg');
-    const tokenResult = document.getElementById('tokenResult');
-
-    if (!name || !phone){
-      bookMsg.textContent = "Please enter your name and mobile number."; bookMsg.className = "err"; return;
-    }
-    if (!scheduledAt){
-      bookMsg.textContent = "Please choose a date and time."; bookMsg.className = "err"; return;
-    }
-    const svc = selectedServices.find(s => s.id === serviceId);
-    if (!svc){
-      bookMsg.textContent = "Please choose a service."; bookMsg.className = "err"; return;
-    }
-    if (typeof Razorpay === 'undefined'){
-      bookMsg.textContent = "Payment system failed to load — check your connection."; bookMsg.className = "err"; return;
-    }
-
-    bookMsg.textContent = "Preparing payment...";
-    bookMsg.className = "";
-
+  async function loadProducts(){
     try{
-      const orderRes = await fetch(`${API_BASE}/create-razorpay-order`, {
-        method: "POST", headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ amount: svc.price })
-      });
-      const order = await orderRes.json();
-      if (!orderRes.ok) throw new Error(order.error || "Couldn't start payment");
-
-      const rzp = new Razorpay({
-        key: order.key_id,
-        amount: order.amount,
-        currency: order.currency,
-        order_id: order.order_id,
-        name: currentSalon ? currentSalon.name : 'Tejvix Salon',
-        description: `${svc.name} appointment`,
-        prefill: { name, contact: phone },
-        theme: { color: (currentSalon && currentSalon.brand_color) || '#FF6A00' },
-        handler: async function(response){
-          bookMsg.textContent = "Verifying payment...";
-          try{
-            const verifyRes = await fetch(`${API_BASE}/verify-razorpay-payment`, {
-              method: "POST", headers: {"Content-Type":"application/json"},
-              body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                salon: salonSlug, name, phone, service_id: serviceId, staff_id: staffId, scheduled_at: scheduledAt,
-              }),
-            });
-            const result = await verifyRes.json();
-            if (!verifyRes.ok) throw new Error(result.error || "Payment verification failed");
-
-            const when = new Date(result.scheduled_at).toLocaleString('en-IN', {day:'numeric', month:'short', hour:'numeric', minute:'2-digit', hour12:true});
-            document.getElementById('tokenNumber').textContent = '✓';
-            document.getElementById('tokenSub').textContent = `${result.service} — paid & confirmed for ${when}.`;
-            document.getElementById('loyaltyNote').textContent = '';
-            document.getElementById('paymentSection').style.display = 'none';
-            tokenResult.classList.add('show');
-            bookMsg.textContent = "Payment successful — appointment confirmed! ✓";
-            bookMsg.className = "ok";
-            document.getElementById('bookForm').reset();
-            loadQueue();
-          }catch(err){
-            bookMsg.textContent = `Payment succeeded but confirmation failed — contact the salon with payment ID ${response.razorpay_payment_id}.`;
-            bookMsg.className = "err";
-            console.error(err);
-          }
-        },
-        modal: {
-          ondismiss: function(){
-            bookMsg.textContent = "Payment cancelled.";
-            bookMsg.className = "err";
-          },
-        },
-      });
-      rzp.open();
-      bookMsg.textContent = "";
-    }catch(err){
-      bookMsg.textContent = "Couldn't start payment — Razorpay may not be configured yet.";
-      bookMsg.className = "err";
-      console.error(err);
-    }
+      const res = await fetch(`${API_BASE}/products?salon=${encodeURIComponent(salonSlug)}`);
+      const data = await res.json();
+      selectedProducts = data.products || [];
+    }catch(err){ console.error(err); selectedProducts = []; }
   }
 
-
+  // ================= LIVE QUEUE =================
   async function loadQueue(){
     const boardsEl = document.getElementById('staffBoards');
     try{
@@ -826,51 +561,620 @@
       const data = await res.json();
       if(!res.ok) throw new Error(data.error);
       if (data.salon) applySalonBranding(data.salon);
+      latestQueueData = data;
 
-      boardsEl.innerHTML = (data.queues || []).map(q => {
+      const boards = (data.queues || []).map(q => {
         const rows = q.waiting.map(item => `
-          <div class="qrow">
-            <span class="tok-mini">${item.token}</span>
+          <div style="display:flex; justify-content:space-between; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin-bottom:8px; font-size:0.88rem;">
+            <span style="font-weight:600; color:var(--gold-soft);">${item.token}</span>
             <span>${item.name}</span>
-            <span class="eta">~${item.estimated_wait_minutes} min</span>
+            <span style="color:var(--text-dim);">~${item.estimated_wait_minutes} min</span>
           </div>`).join('');
         return `
-          <div class="staff-board">
-            <div class="staff-board-head">
-              <span class="name">${q.staff_name}</span>
-              <span class="live-dot">Live</span>
+          <div class="card" style="margin-bottom:14px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+              <strong>${q.staff_name}</strong>
+              <span style="color:var(--success); font-size:0.8rem;">● Live</span>
             </div>
-            <div class="now-serving">
-              <div class="label">Now serving</div>
-              <div class="tok">${q.now_serving ? q.now_serving.token : '—'}</div>
+            <div style="background:var(--bg-panel-2); border-radius:10px; padding:16px; text-align:center; margin-bottom:10px;">
+              <div style="font-size:0.78rem; color:var(--text-dim);">Now serving</div>
+              <div style="font-family:'Fraunces',serif; font-size:1.8rem; color:var(--gold-soft);">${q.now_serving ? q.now_serving.token : '—'}</div>
             </div>
-            <div class="queue-list">${rows || '<div class="qrow"><span>No one waiting</span></div>'}</div>
+            ${rows || '<p style="color:var(--text-dim); font-size:0.85rem;">No one waiting</p>'}
           </div>`;
-      }).join('') || '<div class="card"><p>No staff set up yet.</p></div>';
+      }).join('');
+      boardsEl.innerHTML = boards || emptyState('⏱️', 'No staff set up yet', 'Check back once the salon adds their team.');
     }catch(err){
-      boardsEl.innerHTML = `<div class="card"><p>Couldn't reach the server.</p></div>`;
+      boardsEl.innerHTML = errorState("Couldn't load the live queue.", loadQueue);
       console.error(err);
     }
   }
 
+  // ================= BOOKING WIZARD =================
+  const wizard = {
+    step: 0,
+    steps: [],
+    data: { bookingType: null, serviceIds: [], productIds: [], staffId: '', date: null, time: null, name: '', phone: '', channel: 'sms' },
+  };
+
+  const STEP_LABELS = { type:'Type', service:'Service', addons:'Add-ons', staff:'Staff', date:'Date', time:'Time', details:'Details', summary:'Review', confirm:'Confirm' };
+
+  function computeSteps(){
+    const s = ['type', 'service', 'addons', 'staff'];
+    if (wizard.data.bookingType === 'appointment') s.push('date', 'time');
+    s.push('details', 'summary', 'confirm');
+    return s;
+  }
+
+  function startWizard(){
+    wizard.step = 0;
+    wizard.data = { bookingType: null, serviceIds: [], productIds: [], staffId: '', date: null, time: null, name: '', phone: '', channel: 'sms' };
+    wizard.steps = computeSteps();
+    renderWizard();
+  }
+
+  function renderWizard(){
+    wizard.steps = computeSteps();
+    if (wizard.step >= wizard.steps.length) wizard.step = wizard.steps.length - 1;
+    renderProgress();
+    renderStepContent();
+  }
+
+  function renderProgress(){
+    const el = document.getElementById('wizardProgress');
+    el.innerHTML = wizard.steps.map((s, i) => {
+      const dotClass = i < wizard.step ? 'done' : i === wizard.step ? 'current' : '';
+      const dotContent = i < wizard.step ? '✓' : (i + 1);
+      const line = i < wizard.steps.length - 1 ? '<span class="progress-line"></span>' : '';
+      return `<span class="progress-step"><span class="progress-dot ${dotClass}">${dotContent}</span><span class="progress-label ${i===wizard.step?'current':''}">${STEP_LABELS[s]}</span></span>${line}`;
+    }).join('');
+  }
+
+  function ensureWizardMsgEl(){
+    return document.getElementById('wizardMsg') || { textContent: '', style: {} };
+  }
+
+  function validateStep(){
+    const s = wizard.steps[wizard.step];
+    const msgEl = ensureWizardMsgEl();
+    msgEl.textContent = '';
+    if (s === 'type' && !wizard.data.bookingType){ msgEl.textContent = 'Please choose an option.'; msgEl.style.color = 'var(--danger)'; return false; }
+    if (s === 'service' && !wizard.data.serviceIds.length){ msgEl.textContent = 'Please select at least one service.'; msgEl.style.color = 'var(--danger)'; return false; }
+    if (s === 'date' && !wizard.data.date){ msgEl.textContent = 'Please pick a date.'; msgEl.style.color = 'var(--danger)'; return false; }
+    if (s === 'time' && !wizard.data.time){ msgEl.textContent = 'Please pick a time.'; msgEl.style.color = 'var(--danger)'; return false; }
+    if (s === 'details'){
+      if (!wizard.data.name.trim()){ msgEl.textContent = 'Please enter your name.'; msgEl.style.color = 'var(--danger)'; return false; }
+      if (!/^\+?[0-9]{10,13}$/.test(wizard.data.phone.trim())){ msgEl.textContent = 'Please enter a valid mobile number.'; msgEl.style.color = 'var(--danger)'; return false; }
+    }
+    return true;
+  }
+
+  function goNext(){
+    if (!validateStep()) return;
+    wizard.step++;
+    renderWizard();
+  }
+  function goBack(){
+    if (wizard.step === 0){ switchTab('home'); return; }
+    wizard.step--;
+    renderWizard();
+  }
+
+  function renderStepContent(){
+    const step = wizard.steps[wizard.step];
+    const el = document.getElementById('wizardContent');
+    const renderers = { type: stepType, service: stepService, staff: stepStaff, date: stepDate, time: stepTime, details: stepDetails, summary: stepSummary, confirm: stepConfirm };
+    el.innerHTML = renderers[step]();
+    wireStepEvents(step);
+    renderStickyBar(step);
+  }
+
+  function stepType(){
+    return `
+      <div class="section-head"><h2>How would you like to visit?</h2><p>Choose walk-in for right now, or reserve a slot for later.</p></div>
+      <button type="button" class="option ${wizard.data.bookingType==='walkin'?'selected':''}" data-type="walkin">
+        <span><span class="opt-main">Walk-in now</span><div class="opt-sub">Join today's live queue immediately</div></span>
+        <span class="opt-check">${wizard.data.bookingType==='walkin'?'✓':''}</span>
+      </button>
+      <button type="button" class="option ${wizard.data.bookingType==='appointment'?'selected':''}" data-type="appointment">
+        <span><span class="opt-main">Book for later</span><div class="opt-sub">Reserve a time slot in the next 7 days</div></span>
+        <span class="opt-check">${wizard.data.bookingType==='appointment'?'✓':''}</span>
+      </button>
+      <div id="wizardMsg" style="margin-top:10px; font-size:0.9rem;"></div>`;
+  }
+
+  function stepService(){
+    if (!selectedServices.length) return emptyState('✂️', 'No services available', "This salon hasn't added services yet.");
+    const rows = selectedServices.map(s => {
+      const isSel = wizard.data.serviceIds.includes(s.id);
+      return `
+      <button type="button" class="option ${isSel?'selected':''}" data-service="${s.id}">
+        <span><span class="opt-main">${s.name}</span><div class="opt-sub">${s.duration_minutes} min · ₹${s.price}</div></span>
+        <span class="opt-check">${isSel?'✓':''}</span>
+      </button>`;
+    }).join('');
+    const total = selectedServices.filter(s => wizard.data.serviceIds.includes(s.id)).reduce((sum,s)=>sum+Number(s.price),0);
+    return rows + `<p style="color:var(--text-dim); font-size:0.85rem; margin:8px 0;">Tap to select — you can pick more than one.</p>` +
+      (wizard.data.serviceIds.length ? `<p style="color:var(--gold-soft); font-weight:600;">Selected total: ₹${total}</p>` : '') +
+      `<div id="wizardMsg" style="margin-top:10px; font-size:0.9rem;"></div>`;
+  }
+
+  function stepAddons(){
+    if (!selectedProducts.length){
+      return `<p style="color:var(--text-dim); font-size:0.9rem; margin-bottom:10px;">No add-on products available — you can skip this step.</p><div id="wizardMsg"></div>`;
+    }
+    const rows = selectedProducts.map(p => {
+      const isSel = wizard.data.productIds.includes(p.id);
+      return `
+      <button type="button" class="option ${isSel?'selected':''}" data-product="${p.id}">
+        <span><span class="opt-main">${p.name}</span><div class="opt-sub">₹${p.price}</div></span>
+        <span class="opt-check">${isSel?'✓':''}</span>
+      </button>`;
+    }).join('');
+    return `<p style="color:var(--text-dim); font-size:0.9rem; margin-bottom:12px;">Want to add anything to your order? Totally optional.</p>` + rows +
+      `<div id="wizardMsg" style="margin-top:10px; font-size:0.9rem;"></div>`;
+  }
+
+  function stepStaff(){
+    const anySelected = wizard.data.staffId === '';
+    let html = `
+      <button type="button" class="option ${anySelected?'selected':''}" data-staff="">
+        <span><span class="opt-main">Any available</span><div class="opt-sub">We'll assign the next free barber</div></span>
+        <span class="opt-check">${anySelected?'✓':''}</span>
+      </button>`;
+    html += selectedStaffList.map(s => `
+      <button type="button" class="option ${wizard.data.staffId===s.id?'selected':''}" data-staff="${s.id}">
+        <span><span class="opt-main">${s.name}</span></span>
+        <span class="opt-check">${wizard.data.staffId===s.id?'✓':''}</span>
+      </button>`).join('');
+    return html + `<div id="wizardMsg" style="margin-top:10px; font-size:0.9rem;"></div>`;
+  }
+
+  function stepDate(){
+    let html = '<div class="hscroll">';
+    for (let i = 0; i < 7; i++){
+      const d = new Date(); d.setDate(d.getDate() + i);
+      const iso = d.toISOString().slice(0, 10);
+      const label = i===0 ? 'Today' : i===1 ? 'Tomorrow' : d.toLocaleDateString('en-IN', {weekday:'short', day:'numeric'});
+      html += `<button type="button" class="chip ${wizard.data.date===iso?'selected':''}" data-date="${iso}">${label}</button>`;
+    }
+    html += '</div><div id="wizardMsg" style="margin-top:14px; font-size:0.9rem;"></div>';
+    return html;
+  }
+
+  function stepTime(){
+    const selectedDate = wizard.data.date || new Date().toISOString().slice(0, 10);
+    const isToday = selectedDate === new Date().toISOString().slice(0, 10);
+    const now = new Date();
+    const slots = [];
+    for (let h = 10; h <= 20; h++){
+      for (const m of [0, 30]){
+        if (h === 20 && m === 30) continue;
+        const slot = new Date(selectedDate + 'T00:00:00'); slot.setHours(h, m, 0, 0);
+        if (!isToday || slot > now) slots.push(slot);
+      }
+    }
+    if (!slots.length) return emptyState('🕒', 'No slots left that day', 'Please pick a different date.');
+    const grid = slots.map(slot => {
+      const iso = slot.toISOString();
+      const label = slot.toLocaleTimeString('en-IN', {hour:'numeric', minute:'2-digit', hour12:true});
+      return `<button type="button" class="time-slot ${wizard.data.time===iso?'selected':''}" data-time="${iso}">${label}</button>`;
+    }).join('');
+    return `<div class="time-grid">${grid}</div><div id="wizardMsg" style="margin-top:14px; font-size:0.9rem;"></div>`;
+  }
+
+  function stepDetails(){
+    return `
+      <div class="field"><label for="wName">Your name</label><input type="text" id="wName" value="${wizard.data.name}" placeholder="e.g. Rahul Kumar"></div>
+      <div class="field"><label for="wPhone">Mobile number</label><input type="tel" id="wPhone" value="${wizard.data.phone}" placeholder="+91 98xxxxxxx"></div>
+      <div id="repeatSuggestion"></div>
+      <div class="field">
+        <label>How should we update you?</label>
+        <div class="toggle-row" style="display:flex; gap:10px;">
+          <button type="button" class="chip ${wizard.data.channel==='sms'?'selected':''}" data-channel="sms" style="flex:1;">📩 SMS</button>
+          <button type="button" class="chip ${wizard.data.channel==='whatsapp'?'selected':''}" data-channel="whatsapp" style="flex:1;">💬 WhatsApp (save link)</button>
+        </div>
+      </div>
+      <div id="wizardMsg" style="margin-top:6px; font-size:0.9rem;"></div>`;
+  }
+
+  function stepSummary(){
+    const cartServices = selectedServices.filter(s => wizard.data.serviceIds.includes(s.id));
+    const cartProducts = selectedProducts.filter(p => wizard.data.productIds.includes(p.id));
+    const staffName = wizard.data.staffId ? ((selectedStaffList.find(s => s.id === wizard.data.staffId) || {}).name || '') : 'Any available';
+    const totalDuration = cartServices.reduce((sum, s) => sum + s.duration_minutes, 0);
+    const subtotal = cartServices.reduce((sum, s) => sum + Number(s.price), 0) + cartProducts.reduce((sum, p) => sum + Number(p.price), 0);
+
+    let whenLine = '';
+    if (wizard.data.bookingType === 'appointment' && wizard.data.time){
+      whenLine = `<div class="svc-row"><span>When</span><span>${new Date(wizard.data.time).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit',hour12:true})}</span></div>`;
+    } else if (latestQueueData){
+      const q = (latestQueueData.queues || []).find(qq => wizard.data.staffId ? qq.staff_id === wizard.data.staffId : true);
+      const ahead = q ? q.waiting.length : 0;
+      const estWait = ahead * totalDuration;
+      whenLine = `<div class="svc-row"><span>Estimated wait</span><span>${ahead} ahead · ~${estWait} min</span></div>`;
+    }
+
+    const itemRows = [...cartServices.map(s => `<div class="svc-row"><span>${s.name}</span><span>₹${s.price}</span></div>`),
+                       ...cartProducts.map(p => `<div class="svc-row"><span>${p.name} (add-on)</span><span>₹${p.price}</span></div>`)].join('');
+
+    const hints = [];
+    if (currentSalon && currentSalon.happy_hours_enabled){
+      hints.push(`🎉 Happy Hours discount may apply (Mon–Wed) — final price shown after booking.`);
+    }
+    if (wizard.data.bookingType === 'walkin'){
+      hints.push(`⚡ A high-demand surge fee may apply if the queue is busy right now — final price shown after booking.`);
+    }
+
+    return `
+      <div class="card">
+        <div class="svc-row"><span>Type</span><span>${wizard.data.bookingType==='walkin'?'Walk-in now':'Advance booking'}</span></div>
+        ${itemRows}
+        <div class="svc-row"><span>Barber</span><span>${staffName}</span></div>
+        ${whenLine}
+        <div class="svc-row"><span>Name</span><span>${wizard.data.name}</span></div>
+        <div class="svc-row"><span>Phone</span><span>${wizard.data.phone}</span></div>
+        <div class="svc-row"><span>Updates via</span><span>${wizard.data.channel === 'whatsapp' ? 'WhatsApp' : 'SMS'}</span></div>
+        <div class="svc-row" style="border-bottom:none;"><span><strong>Subtotal</strong></span><span class="price">₹${subtotal}</span></div>
+      </div>
+      ${hints.length ? `<p style="color:var(--text-dim); font-size:0.82rem; margin-top:10px;">${hints.join('<br>')}</p>` : ''}
+      <div id="wizardMsg" style="margin-top:14px; font-size:0.9rem;"></div>`;
+  }
+
+  function stepConfirm(){
+    return `<div class="state-box"><div class="state-icon">⏳</div><h3>Processing your booking...</h3><p>Please wait a moment.</p></div>`;
+  }
+
+  function wireStepEvents(step){
+    if (step === 'type'){
+      document.querySelectorAll('[data-type]').forEach(btn => btn.addEventListener('click', () => { wizard.data.bookingType = btn.dataset.type; renderStepContent(); }));
+    }
+    if (step === 'service'){
+      document.querySelectorAll('[data-service]').forEach(btn => btn.addEventListener('click', () => {
+        const id = btn.dataset.service;
+        const idx = wizard.data.serviceIds.indexOf(id);
+        if (idx === -1) wizard.data.serviceIds.push(id); else wizard.data.serviceIds.splice(idx, 1);
+        renderStepContent();
+      }));
+    }
+    if (step === 'addons'){
+      document.querySelectorAll('[data-product]').forEach(btn => btn.addEventListener('click', () => {
+        const id = btn.dataset.product;
+        const idx = wizard.data.productIds.indexOf(id);
+        if (idx === -1) wizard.data.productIds.push(id); else wizard.data.productIds.splice(idx, 1);
+        renderStepContent();
+      }));
+    }
+    if (step === 'staff'){
+      document.querySelectorAll('[data-staff]').forEach(btn => btn.addEventListener('click', () => { wizard.data.staffId = btn.dataset.staff; renderStepContent(); }));
+    }
+    if (step === 'date'){
+      document.querySelectorAll('[data-date]').forEach(btn => btn.addEventListener('click', () => { wizard.data.date = btn.dataset.date; wizard.data.time = null; renderStepContent(); }));
+    }
+    if (step === 'time'){
+      document.querySelectorAll('[data-time]').forEach(btn => btn.addEventListener('click', () => { wizard.data.time = btn.dataset.time; renderStepContent(); }));
+    }
+    if (step === 'details'){
+      document.getElementById('wName').addEventListener('input', (e) => wizard.data.name = e.target.value);
+      const phoneInput = document.getElementById('wPhone');
+      phoneInput.addEventListener('input', (e) => wizard.data.phone = e.target.value);
+      phoneInput.addEventListener('blur', checkRepeatBooking);
+      document.querySelectorAll('[data-channel]').forEach(btn => btn.addEventListener('click', () => { wizard.data.channel = btn.dataset.channel; renderStepContent(); }));
+    }
+    if (step === 'confirm'){
+      finalizeBooking();
+    }
+  }
+
+  // One-tap "repeat your last booking" suggestion, using the same phone
+  // lookup that powers my-bookings.html.
+  async function checkRepeatBooking(){
+    const phone = wizard.data.phone.trim();
+    const box = document.getElementById('repeatSuggestion');
+    if (!box || !/^\+?[0-9]{10,13}$/.test(phone)) return;
+    try{
+      const res = await fetch(`${API_BASE}/my-bookings?phone=${encodeURIComponent(phone)}`);
+      const data = await res.json();
+      const past = (data.bookings || []).find(b => b.salon_slug === salonSlug && b.cart_items && b.cart_items.length);
+      if (!past){ box.innerHTML = ''; return; }
+      const names = past.cart_items.map(i => i.name).join(', ');
+      box.innerHTML = `
+        <div class="card" style="margin-bottom:16px;">
+          <p style="font-size:0.9rem;">Repeat your last order — <strong>${names}</strong>?</p>
+          <button type="button" class="btn-ghost" id="repeatBtn" style="margin-top:8px; width:auto;">Use this again</button>
+        </div>`;
+      document.getElementById('repeatBtn').addEventListener('click', () => {
+        wizard.data.serviceIds = past.cart_items.filter(i => i.type === 'service').map(i => i.id);
+        wizard.data.productIds = past.cart_items.filter(i => i.type === 'product').map(i => i.id);
+        if (past.staff_id) wizard.data.staffId = past.staff_id;
+        box.innerHTML = `<p style="color:var(--success); font-size:0.85rem;">✓ Applied — check the Review step to confirm.</p>`;
+      });
+    }catch(err){ console.error(err); }
+  }
+
+  function renderStickyBar(step){
+    let bar = document.getElementById('wizardStickyBar');
+    if (!bar){
+      bar = document.createElement('div');
+      bar.className = 'sticky-bar';
+      bar.id = 'wizardStickyBar';
+      document.body.appendChild(bar);
+    }
+    if (step === 'confirm'){
+      bar.style.display = 'none';
+      return;
+    }
+    bar.style.display = '';
+    const cartTotal = selectedServices.filter(s => wizard.data.serviceIds.includes(s.id)).reduce((sum,s)=>sum+Number(s.price),0)
+      + selectedProducts.filter(p => wizard.data.productIds.includes(p.id)).reduce((sum,p)=>sum+Number(p.price),0);
+    const priceHtml = cartTotal ? `<span class="sticky-price">₹${cartTotal}</span>` : '';
+    const isLast = step === 'summary';
+    const ctaText = isLast ? (wizard.data.bookingType === 'walkin' ? 'Join Queue' : 'Continue to Payment') : (step === 'addons' && !selectedProducts.length ? 'Skip' : 'Continue');
+    bar.innerHTML = `
+      <div class="wrap">
+        <button class="sticky-back" id="stickyBack">Back</button>
+        ${priceHtml}
+        <button class="btn-primary" id="stickyNext">${ctaText}</button>
+      </div>`;
+    document.getElementById('stickyBack').addEventListener('click', goBack);
+    document.getElementById('stickyNext').addEventListener('click', goNext);
+  }
+
+  // ---- Finalizing the booking (walk-in vs advance/UPI) ----
+  async function finalizeBooking(){
+    if (wizard.data.bookingType === 'walkin'){
+      try{
+        const res = await fetch(`${API_BASE}/book`, {
+          method: "POST", headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ salon: salonSlug, name: wizard.data.name, phone: wizard.data.phone, service_ids: wizard.data.serviceIds, product_ids: wizard.data.productIds, staff_id: wizard.data.staffId, booking_type: 'walkin', channel: wizard.data.channel })
+        });
+        const data = await res.json();
+        if(!res.ok) throw new Error(data.error || 'Something went wrong');
+        renderWalkinResult(data);
+        loadQueue();
+      }catch(err){
+        document.getElementById('wizardContent').innerHTML = errorState(err.message || "Couldn't complete your booking.", () => { wizard.step = wizard.steps.indexOf('summary'); renderWizard(); });
+        console.error(err);
+      }
+    } else {
+      // Appointment: for a simple single-service, no-addon cart, try
+      // Razorpay first for a verified payment (falls back silently if not
+      // configured). A multi-item cart always uses the UPI self-report
+      // flow below, since it already fully supports carts.
+      const isSimpleCart = wizard.data.serviceIds.length === 1 && wizard.data.productIds.length === 0;
+      const svc = isSimpleCart ? selectedServices.find(s => s.id === wizard.data.serviceIds[0]) : null;
+      let razorpayHandled = false;
+
+      if (isSimpleCart && typeof Razorpay !== 'undefined' && svc){
+        try{
+          const orderRes = await fetch(`${API_BASE}/create-razorpay-order`, {
+            method: "POST", headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({ amount: svc.price, salon: salonSlug, phone: wizard.data.phone })
+          });
+          if (orderRes.ok){
+            const order = await orderRes.json();
+            openRazorpayCheckout(order, svc);
+            razorpayHandled = true;
+          }
+        }catch(err){
+          console.error('Razorpay unavailable, falling back to UPI flow:', err);
+        }
+      }
+      if (razorpayHandled) return;
+
+      try{
+        const res = await fetch(`${API_BASE}/book`, {
+          method: "POST", headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ salon: salonSlug, name: wizard.data.name, phone: wizard.data.phone, service_ids: wizard.data.serviceIds, product_ids: wizard.data.productIds, staff_id: wizard.data.staffId, booking_type: 'appointment', scheduled_at: wizard.data.time, channel: wizard.data.channel })
+        });
+        const data = await res.json();
+        if(!res.ok) throw new Error(data.error || 'Something went wrong');
+
+        const invoiceData = { ...data, name: wizard.data.name, phone: wizard.data.phone };
+        if (data.payment_needed){
+          renderPaymentStep(invoiceData);
+        } else {
+          renderInvoice(invoiceData, 'Not required');
+        }
+        loadQueue();
+      }catch(err){
+        document.getElementById('wizardContent').innerHTML = errorState(err.message || "Couldn't complete your booking.", () => { wizard.step = wizard.steps.indexOf('summary'); renderWizard(); });
+        console.error(err);
+      }
+    }
+  }
+
+  function openRazorpayCheckout(order, svc){
+    const rzp = new Razorpay({
+      key: order.key_id,
+      amount: order.amount,
+      currency: order.currency,
+      order_id: order.order_id,
+      name: currentSalon ? currentSalon.name : 'Tejvix Salon',
+      description: `${svc.name} appointment`,
+      prefill: { name: wizard.data.name, contact: wizard.data.phone },
+      theme: { color: (currentSalon && currentSalon.brand_color) || '#FF6A00' },
+      handler: async function(response){
+        document.getElementById('wizardContent').innerHTML = `<div class="state-box"><div class="state-icon">⏳</div><h3>Verifying payment...</h3><p>Please wait a moment.</p></div>`;
+        try{
+          const verifyRes = await fetch(`${API_BASE}/verify-razorpay-payment`, {
+            method: "POST", headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              salon: salonSlug, name: wizard.data.name, phone: wizard.data.phone,
+              service_id: wizard.data.serviceIds[0], staff_id: wizard.data.staffId, scheduled_at: wizard.data.time,
+            }),
+          });
+          const result = await verifyRes.json();
+          if (!verifyRes.ok) throw new Error(result.error || 'Payment verification failed');
+
+          renderInvoice({
+            booking_id: result.booking_id,
+            salon_name: result.salon_name,
+            name: wizard.data.name,
+            phone: wizard.data.phone,
+            service: result.service,
+            amount: result.amount,
+            scheduled_at: result.scheduled_at,
+          }, 'Paid via Razorpay (verified)');
+          loadQueue();
+        }catch(err){
+          document.getElementById('wizardContent').innerHTML = errorState(
+            `Payment succeeded but confirmation failed — contact the salon with payment ID ${response.razorpay_payment_id}.`,
+            () => { wizard.step = wizard.steps.indexOf('summary'); renderWizard(); }
+          );
+          console.error(err);
+        }
+      },
+      modal: {
+        ondismiss: function(){
+          document.getElementById('wizardContent').innerHTML = errorState('Payment cancelled.', () => { wizard.step = wizard.steps.indexOf('summary'); renderWizard(); });
+        },
+      },
+    });
+    rzp.open();
+  }
+
+  function renderWalkinResult(data){
+    const el = document.getElementById('wizardContent');
+    const items = (data.cart_items || []).map(i => `<div class="svc-row"><span>${i.name}</span><span>₹${i.price}</span></div>`).join('');
+    const feeLines = [
+      data.surge_fee ? `<div class="svc-row"><span>High-demand surge fee</span><span>+₹${data.surge_fee}</span></div>` : '',
+      data.discount_amount ? `<div class="svc-row"><span>Happy Hours discount</span><span>−₹${data.discount_amount}</span></div>` : '',
+    ].join('');
+    const whatsappBtn = data.channel === 'whatsapp'
+      ? `<a href="https://wa.me/?text=${encodeURIComponent(data.whatsapp_message || '')}" target="_blank" class="btn-ghost" style="display:block; margin-top:10px;">💬 Save to WhatsApp</a>`
+      : '';
+
+    el.innerHTML = `
+      <div class="card" style="text-align:center;">
+        <div class="state-icon">🎟️</div>
+        <h2 style="color:var(--gold-soft);">${data.token}</h2>
+        <p style="color:var(--text-dim); margin:8px 0;">${data.ahead} ahead of you — about ${data.estimated_wait_minutes} min wait.</p>
+        ${items ? `<div style="text-align:left; margin:14px 0;">${items}${feeLines}<div class="svc-row" style="border-bottom:none;"><span><strong>Total</strong></span><span class="price">₹${data.amount}</span></div></div>` : ''}
+        ${data.loyalty_message ? `<p style="color:var(--gold-soft); font-size:0.88rem;">${data.loyalty_message}</p>` : ''}
+        ${whatsappBtn}
+        <div id="walkinPaymentBox" style="margin-top:18px;"></div>
+        <button class="btn-ghost" style="margin-top:20px;" id="backHomeBtn">Back to Home</button>
+      </div>`;
+    document.getElementById('backHomeBtn').addEventListener('click', () => switchTab('home'));
+
+    if (currentSalon && (currentSalon.upi_id || currentSalon.payment_qr_url)){
+      const box = document.getElementById('walkinPaymentBox');
+      let qrSrc = '';
+      if (currentSalon.payment_qr_url) qrSrc = currentSalon.payment_qr_url;
+      else if (currentSalon.upi_id && data.amount){
+        const upiUri = `upi://pay?pa=${encodeURIComponent(currentSalon.upi_id)}&pn=${encodeURIComponent(currentSalon.name)}&am=${data.amount}&cu=INR`;
+        qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiUri)}`;
+      }
+      if (qrSrc){
+        box.innerHTML = `
+          <div style="font-size:0.85rem; color:var(--text-dim); margin-bottom:8px;">Pay for your service (optional)</div>
+          <img src="${qrSrc}" style="width:150px; height:150px; border-radius:10px; background:#fff; padding:8px;">
+          <div style="font-size:0.78rem; color:var(--text-dim); margin-top:6px;">Scan with any UPI app</div>`;
+      }
+    }
+  }
+
+  function renderPaymentStep(invoiceData){
+    const el = document.getElementById('wizardContent');
+    let qrSrc = '', directHref = '';
+    if (invoiceData.payment_qr_url){
+      qrSrc = invoiceData.payment_qr_url;
+    } else if (invoiceData.upi_id){
+      const upiUri = `upi://pay?pa=${encodeURIComponent(invoiceData.upi_id)}&pn=${encodeURIComponent(invoiceData.salon_name)}&am=${invoiceData.amount}&cu=INR`;
+      qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiUri)}`;
+      directHref = upiUri;
+    }
+    el.innerHTML = `
+      <div class="card" style="text-align:center;">
+        <div style="font-size:0.85rem; color:var(--text-dim); margin-bottom:10px;">Scan to pay</div>
+        <img src="${qrSrc}" style="width:180px; height:180px; border-radius:10px; background:#fff; padding:10px;">
+        <div style="color:var(--gold-soft); font-weight:600; margin:10px 0;">Amount: ₹${invoiceData.amount}</div>
+        ${directHref ? `<a href="${directHref}" class="btn-ghost" style="display:inline-block; margin-bottom:10px;">📱 Pay via UPI App (same device)</a>` : ''}
+        <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:16px;">Scan with another device, or tap the button above if booking from your own phone.</p>
+        <div class="field" style="text-align:left;">
+          <label for="payRef">UPI transaction ID (optional, helps the salon verify)</label>
+          <input type="text" id="payRef" placeholder="e.g. last 6 digits of UTR">
+        </div>
+        <button class="btn-primary" id="paidBtn">I have completed the payment ✓</button>
+        <div id="paidMsg" style="margin-top:10px; font-size:0.9rem;"></div>
+      </div>`;
+
+    document.getElementById('paidBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('paidBtn');
+      const msg = document.getElementById('paidMsg');
+      btn.disabled = true; btn.textContent = 'Confirming...';
+      try{
+        const paymentRef = document.getElementById('payRef').value.trim();
+        const res = await fetch(`${API_BASE}/mark-payment-claimed`, {
+          method: "POST", headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ token_id: invoiceData.booking_id, payment_ref: paymentRef })
+        });
+        const result = await res.json();
+        if(!res.ok) throw new Error(result.error || "Couldn't confirm payment");
+        renderInvoice(invoiceData, 'Paid via UPI (self-confirmed)');
+      }catch(err){
+        msg.textContent = "Couldn't confirm — please try again.";
+        msg.style.color = 'var(--danger)';
+        btn.disabled = false; btn.textContent = 'I have completed the payment ✓';
+        console.error(err);
+      }
+    });
+  }
+
+  function renderInvoice(invoiceData, paymentLabel){
+    const when = new Date(invoiceData.scheduled_at).toLocaleString('en-IN', {day:'numeric', month:'short', hour:'numeric', minute:'2-digit', hour12:true});
+    const el = document.getElementById('wizardContent');
+    let waButton = '';
+    if (currentSalon && currentSalon.phone){
+      const digits = currentSalon.phone.replace(/[^0-9]/g, '');
+      const msg = `New appointment booked:\n${invoiceData.name} (${invoiceData.phone})\nService: ${invoiceData.service} — ₹${invoiceData.amount}\nWhen: ${when}\nPayment: ${paymentLabel}`;
+      waButton = `<a href="https://wa.me/${digits}?text=${encodeURIComponent(msg)}" target="_blank" class="btn-primary" style="display:block; text-align:center; margin-top:10px;">📲 Notify Salon on WhatsApp</a>`;
+    }
+    el.innerHTML = `
+      <div class="card">
+        <div class="state-icon" style="text-align:center;">✅</div>
+        <h2 style="text-align:center; margin-bottom:16px;">Booking Confirmed</h2>
+        <div class="svc-row"><span>Salon</span><span>${invoiceData.salon_name}</span></div>
+        <div class="svc-row"><span>Customer</span><span>${invoiceData.name} (${invoiceData.phone})</span></div>
+        <div class="svc-row"><span>Service</span><span>${invoiceData.service}</span></div>
+        <div class="svc-row"><span>Amount</span><span>₹${invoiceData.amount}</span></div>
+        <div class="svc-row"><span>Date & time</span><span>${when}</span></div>
+        <div class="svc-row"><span>Payment</span><span>${paymentLabel}</span></div>
+        <div class="svc-row" style="border-bottom:none;"><span>Booking ref</span><span>${invoiceData.booking_id.slice(0,8)}</span></div>
+        <div style="display:flex; gap:10px; margin-top:16px;">
+          <button class="btn-ghost" style="flex:1;" onclick="window.print()">🖨️ Print</button>
+          <button class="btn-ghost" style="flex:1;" id="doneBtn">Back to Home</button>
+        </div>
+        ${waButton}
+      </div>`;
+    document.getElementById('doneBtn').addEventListener('click', () => switchTab('home'));
+  }
+
+  // ================= ENTRY POINT =================
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
   }
 
-  // ---------- Entry point ----------
   if (reviewTokenId){
     setupReviewView();
   } else if (salonSlug){
-    directorySection.style.display = 'none';
-    salonSections.style.display = '';
+    directorySection.hidden = true;
+    salonApp.hidden = false;
+    bottomNav.hidden = false;
     loadServices();
-    loadStaffOptions();
+    loadStaffPreview();
+    loadProducts();
+    loadReviewsPreview();
     loadQueue();
     setInterval(loadQueue, 5000);
+    switchTab('home');
   } else {
     loadDirectory();
   }
 </script>
-
 </body>
 </html>

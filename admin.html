@@ -43,6 +43,7 @@
   .stat-row:last-child{border-bottom:none;}
   .stat-row .val{color:var(--gold-soft); font-weight:600;}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -69,9 +70,37 @@
 
       <button class="btn-primary" id="doneBtn">Done — Call Next Customer →</button>
       <button class="btn-danger" id="noShowBtn">Skip (No-Show) — Call Next</button>
+      <button class="btn-secondary" id="quickAddBtn">+ Add Walk-in Guest (no phone)</button>
 
       <div id="msg"></div>
     </div>
+  </div>
+
+  <div class="card" id="settingsCard" style="display:none;">
+    <h2 style="font-size:1rem; margin-bottom:12px;">Salon Settings</h2>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <div>
+        <div style="font-weight:600; font-size:0.92rem;">Happy Hours Discount</div>
+        <div style="color:var(--text-dim); font-size:0.8rem;">Auto-applies Mon–Wed on every booking</div>
+      </div>
+      <input type="checkbox" id="happyHoursToggle" style="width:20px; height:20px;">
+    </div>
+    <div class="field" id="discountField" style="display:none;">
+      <label for="discountPercent">Discount %</label>
+      <input type="number" id="discountPercent" min="0" max="90" value="20">
+    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin:14px 0;">
+      <div>
+        <div style="font-weight:600; font-size:0.92rem;">SMS Mode</div>
+        <div style="color:var(--text-dim); font-size:0.8rem;">Mock = for pitch demos (no real SMS, no cost)</div>
+      </div>
+      <select id="smsModeSelect" style="width:auto;">
+        <option value="real">Real (sends actual SMS)</option>
+        <option value="mock">Mock (demo only, no SMS sent)</option>
+      </select>
+    </div>
+    <button class="btn-primary" id="saveSettingsBtn">Save Settings</button>
+    <div id="settingsMsg" style="margin-top:10px; font-size:0.9rem;"></div>
   </div>
 
   <div class="card" id="apptCard" style="display:none;">
@@ -82,6 +111,18 @@
   <div class="card" id="statsCard" style="display:none;">
     <h2 style="font-size:1rem; margin-bottom:12px;">Today's summary</h2>
     <div id="statsList"></div>
+    <div style="margin-top:20px;">
+      <div class="label" style="margin-bottom:8px;">Revenue — last 7 days</div>
+      <canvas id="revenueChart" height="160"></canvas>
+    </div>
+    <div style="margin-top:24px;">
+      <div class="label" style="margin-bottom:8px;">Popular services — last 7 days</div>
+      <canvas id="serviceChart" height="160"></canvas>
+    </div>
+    <div style="margin-top:24px;">
+      <div class="label" style="margin-bottom:8px;">Busiest hours — last 7 days</div>
+      <canvas id="hourChart" height="160"></canvas>
+    </div>
   </div>
 </div>
 
@@ -149,14 +190,22 @@
       }
       apptList.innerHTML = data.appointments.map(a => {
         const when = new Date(a.scheduled_at).toLocaleString('en-IN', {day:'numeric', month:'short', hour:'numeric', minute:'2-digit', hour12:true});
+        const pendingMinutes = a.created_at ? (Date.now() - new Date(a.created_at).getTime()) / 60000 : 0;
         const payBadge = a.payment_status === 'claimed'
-          ? '<span style="color:var(--success);">● Paid</span>'
+          ? `<span style="color:var(--success);">● Paid${a.payment_ref ? ' (ref: ' + a.payment_ref + ')' : ''}</span>`
           : a.payment_status === 'pending'
-          ? '<span style="color:var(--gold-soft);">● Payment pending</span>'
+          ? (pendingMinutes > 15
+              ? '<span style="color:var(--danger);">● Payment pending — over 15 min, please follow up</span>'
+              : '<span style="color:var(--gold-soft);">● Payment pending</span>')
           : '';
+        const payoutBadge = {
+          success: '<span style="color:var(--success);"> · ● Sent to your UPI</span>',
+          failed: '<span style="color:var(--danger);"> · ● Payout failed — check RazorpayX</span>',
+          no_upi_on_file: '<span style="color:var(--gold-soft);"> · ● Add your UPI ID to receive payouts</span>',
+        }[a.payout_status] || '';
         return `
           <div class="appt-row">
-            <span>${when} — ${a.name} (${a.service}${a.staff ? ', ' + a.staff : ''}) ${payBadge}</span>
+            <span>${when} — ${a.name} (${a.service}${a.staff ? ', ' + a.staff : ''}) ${payBadge}${payoutBadge}</span>
             <button class="btn-secondary" onclick="checkIn('${a.id}')">Check In</button>
           </div>`;
       }).join('');
@@ -182,6 +231,10 @@
     }
   };
 
+  let revenueChartInstance = null;
+  let serviceChartInstance = null;
+  let hourChartInstance = null;
+
   async function loadStats(){
     try{
       const res = await fetch(`${API_BASE}/analytics?salon=${encodeURIComponent(salonSlug)}&pin=${encodeURIComponent(pin)}`);
@@ -196,6 +249,45 @@
         <div class="stat-row"><span>Busiest hour</span><span class="val">${data.busiest_hour || '—'}</span></div>
         <div class="stat-row"><span>Est. revenue</span><span class="val">₹${data.estimated_revenue}</span></div>
       `;
+
+      const chartColors = { gold: '#FF6A00', goldSoft: '#FFB020', dim: '#C9B29A', line: '#3D2A1A' };
+      const commonOpts = {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: chartColors.dim }, grid: { color: chartColors.line } },
+          y: { ticks: { color: chartColors.dim }, grid: { color: chartColors.line }, beginAtZero: true },
+        },
+      };
+
+      if (data.trend && window.Chart){
+        const labels = data.trend.map(d => new Date(d.date).toLocaleDateString('en-IN', { weekday: 'short' }));
+        if (revenueChartInstance) revenueChartInstance.destroy();
+        revenueChartInstance = new Chart(document.getElementById('revenueChart'), {
+          type: 'line',
+          data: { labels, datasets: [{ label: 'Revenue (₹)', data: data.trend.map(d => d.revenue), borderColor: chartColors.gold, backgroundColor: 'rgba(255,106,0,0.15)', fill: true, tension: 0.3 }] },
+          options: commonOpts,
+        });
+      }
+
+      if (data.service_breakdown && window.Chart){
+        if (serviceChartInstance) serviceChartInstance.destroy();
+        serviceChartInstance = new Chart(document.getElementById('serviceChart'), {
+          type: 'bar',
+          data: { labels: data.service_breakdown.map(s => s.name), datasets: [{ label: 'Bookings', data: data.service_breakdown.map(s => s.count), backgroundColor: chartColors.goldSoft }] },
+          options: commonOpts,
+        });
+      }
+
+      if (data.hourly_breakdown && window.Chart){
+        const activeHours = data.hourly_breakdown.filter(h => h.hour >= 8 && h.hour <= 21);
+        if (hourChartInstance) hourChartInstance.destroy();
+        hourChartInstance = new Chart(document.getElementById('hourChart'), {
+          type: 'bar',
+          data: { labels: activeHours.map(h => `${h.hour}:00`), datasets: [{ label: 'Bookings', data: activeHours.map(h => h.count), backgroundColor: chartColors.gold }] },
+          options: commonOpts,
+        });
+      }
     }catch(err){ console.error(err); }
   }
 
@@ -219,22 +311,25 @@
 
     pinGate.style.display = 'none';
     mainPanel.style.display = 'block';
+    document.getElementById('settingsCard').style.display = 'block';
     msgEl.textContent = '';
     refreshStatus();
     loadAppointments();
     loadStats();
+    loadSettings();
+    loadServicesForQuickAdd();
   });
 
   staffSelect.addEventListener('change', refreshStatus);
 
-  async function callNext(outcome){
+  async function callNext(outcome, reason){
     const btns = [document.getElementById('doneBtn'), document.getElementById('noShowBtn')];
     btns.forEach(b => b.disabled = true);
     msgEl.textContent = '';
     try{
       const res = await fetch(`${API_BASE}/next`, {
         method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ salon: salonSlug, staff_id: staffSelect.value, pin, outcome })
+        body: JSON.stringify({ salon: salonSlug, staff_id: staffSelect.value, pin, outcome, reason })
       });
       const data = await res.json();
       if (res.status === 401){
@@ -257,7 +352,92 @@
   }
 
   document.getElementById('doneBtn').addEventListener('click', () => callNext('done'));
-  document.getElementById('noShowBtn').addEventListener('click', () => callNext('no_show'));
+  document.getElementById('noShowBtn').addEventListener('click', () => {
+    const reason = prompt("Why is this customer being marked as a no-show/cancellation? (required — this is logged for the owner)");
+    if (reason === null) return; // cancelled the prompt
+    if (!reason.trim()){ msgEl.textContent = "A reason is required."; msgEl.className = 'err'; return; }
+    callNext('no_show', reason.trim());
+  });
+
+  // ---- Salon Settings (Happy Hours, SMS Mode) ----
+  async function loadSettings(){
+    try{
+      const res = await fetch(`${API_BASE}/queue?salon=${encodeURIComponent(salonSlug)}`);
+      const data = await res.json();
+      if (!res.ok || !data.salon) return;
+      document.getElementById('happyHoursToggle').checked = !!data.salon.happy_hours_enabled;
+      document.getElementById('discountField').style.display = data.salon.happy_hours_enabled ? '' : 'none';
+      document.getElementById('discountPercent').value = data.salon.happy_hours_discount_percent || 20;
+      document.getElementById('smsModeSelect').value = data.salon.sms_mode || 'real';
+    }catch(err){ console.error(err); }
+  }
+
+  document.getElementById('happyHoursToggle').addEventListener('change', (e) => {
+    document.getElementById('discountField').style.display = e.target.checked ? '' : 'none';
+  });
+
+  document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
+    const settingsMsg = document.getElementById('settingsMsg');
+    settingsMsg.textContent = 'Saving...'; settingsMsg.className = '';
+    try{
+      const res = await fetch(`${API_BASE}/update-salon-settings`, {
+        method: "POST", headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+          salon: salonSlug, pin,
+          happy_hours_enabled: document.getElementById('happyHoursToggle').checked,
+          happy_hours_discount_percent: Number(document.getElementById('discountPercent').value),
+          sms_mode: document.getElementById('smsModeSelect').value,
+        })
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || "Couldn't save");
+      settingsMsg.textContent = "Settings saved!"; settingsMsg.className = 'ok';
+    }catch(err){
+      settingsMsg.textContent = "Couldn't save settings."; settingsMsg.className = 'err';
+      console.error(err);
+    }
+  });
+
+  // ---- Walk-in Quick-Add (staff adds an offline guest, no phone needed) ----
+  let quickAddServices = [];
+  async function loadServicesForQuickAdd(){
+    try{
+      const res = await fetch(`${API_BASE}/services?salon=${encodeURIComponent(salonSlug)}`);
+      const data = await res.json();
+      quickAddServices = data.services || [];
+    }catch(err){ console.error(err); }
+  }
+
+  document.getElementById('quickAddBtn').addEventListener('click', async () => {
+    if (!quickAddServices.length){
+      msgEl.textContent = "No services set up yet — add one in Supabase first."; msgEl.className = 'err'; return;
+    }
+    const guestName = prompt("Guest's name (for the queue display):", "Walk-in Guest");
+    if (guestName === null) return;
+    const serviceList = quickAddServices.map((s, i) => `${i + 1}. ${s.name} (₹${s.price})`).join('\n');
+    const choice = prompt(`Which service?\n${serviceList}\n\nEnter the number:`, "1");
+    if (choice === null) return;
+    const chosen = quickAddServices[Number(choice) - 1];
+    if (!chosen){ msgEl.textContent = "Invalid service choice."; msgEl.className = 'err'; return; }
+
+    try{
+      const res = await fetch(`${API_BASE}/book`, {
+        method: "POST", headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+          salon: salonSlug, name: guestName || "Walk-in Guest",
+          service_ids: [chosen.id], staff_id: staffSelect.value,
+          booking_type: 'walkin', is_walkin_guest: true,
+        })
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || "Couldn't add guest");
+      msgEl.textContent = `Added as ${data.token}.`; msgEl.className = 'ok';
+      refreshStatus();
+    }catch(err){
+      msgEl.textContent = "Couldn't add walk-in guest."; msgEl.className = 'err';
+      console.error(err);
+    }
+  });
 
   setInterval(() => { if (pin) { refreshStatus(); loadAppointments(); } }, 5000);
 </script>

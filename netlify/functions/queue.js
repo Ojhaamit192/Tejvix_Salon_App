@@ -16,7 +16,7 @@ exports.handler = async (event) => {
 
   const { data: salon, error: salonErr } = await supabase
     .from("salons")
-    .select("id, name, address, phone, brand_color, photos, upi_id, payment_qr_url")
+    .select("id, name, address, phone, brand_color, photos, upi_id, payment_qr_url, happy_hours_enabled, happy_hours_discount_percent, sms_mode")
     .eq("slug", salonSlug)
     .single();
   if (salonErr || !salon) {
@@ -85,6 +85,9 @@ exports.handler = async (event) => {
         photos: salon.photos || [],
         upi_id: salon.upi_id || null,
         payment_qr_url: salon.payment_qr_url || null,
+        happy_hours_enabled: !!salon.happy_hours_enabled,
+        happy_hours_discount_percent: salon.happy_hours_discount_percent,
+        sms_mode: salon.sms_mode || "real",
       },
       queues,
     }),

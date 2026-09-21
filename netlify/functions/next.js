@@ -25,9 +25,13 @@ exports.handler = async (event) => {
   const staffId = (data.staff_id || "").trim();
   const pin = (data.pin || "").trim();
   const outcome = data.outcome === "no_show" ? "no_show" : "done";
+  const reason = (data.reason || "").trim();
 
   if (!salonSlug || !staffId || !pin) {
     return { statusCode: 400, headers: CORS_HEADERS, body: JSON.stringify({ error: "salon, staff_id and pin are required" }) };
+  }
+  if (outcome === "no_show" && !reason) {
+    return { statusCode: 400, headers: CORS_HEADERS, body: JSON.stringify({ error: "A reason is required to mark a no-show/cancellation" }) };
   }
 
   const supabase = getSupabase();
@@ -57,7 +61,7 @@ exports.handler = async (event) => {
     .maybeSingle();
 
   if (currentServing) {
-    await supabase.from("tokens").update({ status: outcome }).eq("id", currentServing.id);
+    await supabase.from("tokens").update({ status: outcome, cancellation_reason: outcome === "no_show" ? reason : null }).eq("id", currentServing.id);
 
     // Ask for a review only when the visit actually happened.
     if (outcome === "done") {
@@ -67,7 +71,7 @@ exports.handler = async (event) => {
         .eq("id", currentServing.id)
         .single();
       if (justServed) {
-        await sendSms(justServed.phone, `${salon.name}: Thanks for visiting! Rate your experience: reply with a number 1-5.`);
+        await sendSms(justServed.phone, `${salon.name}: Thanks for visiting! Rate your experience: reply with a number 1-5.`, salon.id);
       }
     }
   }
@@ -94,9 +98,9 @@ exports.handler = async (event) => {
 
   await supabase.from("tokens").update({ status: "serving", called_at: new Date().toISOString() }).eq("id", next.id);
 
-  await sendSms(next.phone, `${salon.name}: It's your turn! Token T${next.seq} — please come to the counter.`);
+  await sendSms(next.phone, `${salon.name}: It's your turn! Token T${next.seq} — please come to the counter.`, salon.id);
   if (upcoming) {
-    await sendSms(upcoming.phone, `${salon.name}: You're next (Token T${upcoming.seq}). Please be ready.`);
+    await sendSms(upcoming.phone, `${salon.name}: You're next (Token T${upcoming.seq}). Please be ready.`, salon.id);
   }
 
   return { statusCode: 200, headers: CORS_HEADERS, body: JSON.stringify({ now_serving: `T${next.seq}` }) };

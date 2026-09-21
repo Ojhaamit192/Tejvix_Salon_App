@@ -1,7 +1,8 @@
 const { CORS_HEADERS } = require("./_shared");
+const { getSupabase } = require("./_supabase");
 
 // Creates a Razorpay order for an advance-payment appointment booking.
-// Body: { amount: <rupees>, name, phone, service, salon_name }
+// Body: { amount: <rupees>, salon, phone }
 // The Key Secret never leaves this function — only the public Key ID
 // (safe to expose) goes back to the browser, along with the order_id.
 exports.handler = async (event) => {
@@ -27,6 +28,32 @@ exports.handler = async (event) => {
   const amountRupees = Number(data.amount);
   if (!amountRupees || amountRupees <= 0) {
     return { statusCode: 400, headers: CORS_HEADERS, body: JSON.stringify({ error: "A valid amount is required" }) };
+  }
+
+  // Check BEFORE taking any payment — one active booking per phone, per
+  // salon. No point charging a customer's card only to reject the booking
+  // afterward.
+  const salonSlug = (data.salon || "").trim();
+  const phone = (data.phone || "").trim();
+  if (salonSlug && phone) {
+    const supabase = getSupabase();
+    const { data: salon } = await supabase.from("salons").select("id").eq("slug", salonSlug).single();
+    if (salon) {
+      const { data: existingActive } = await supabase
+        .from("tokens")
+        .select("id")
+        .eq("salon_id", salon.id)
+        .eq("phone", phone)
+        .in("status", ["waiting", "serving", "scheduled"])
+        .maybeSingle();
+      if (existingActive) {
+        return {
+          statusCode: 409,
+          headers: CORS_HEADERS,
+          body: JSON.stringify({ error: "You already have an active booking at this salon." }),
+        };
+      }
+    }
   }
 
   const auth = Buffer.from(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`).toString("base64");

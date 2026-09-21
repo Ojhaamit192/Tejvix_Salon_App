@@ -8,16 +8,19 @@
  *
  * If FAST2SMS_API_KEY isn't set yet, this just logs to the function log
  * instead of failing — handy for testing the app before SMS is configured.
+ *
+ * Every send attempt (including dev-mode "skips") is logged to the
+ * sms_logs table, so the owner dashboard can report total SMS sent.
  */
-async function sendSms(to, body) {
+async function sendSms(to, body, salonId) {
   const apiKey = process.env.FAST2SMS_API_KEY;
 
   if (!apiKey) {
     console.log(`[DEV MODE - SMS not sent] To: ${to} | ${body}`);
+    await logSms(to, body, salonId, "dev_mode");
     return;
   }
 
-  // Fast2SMS expects a plain 10-digit Indian mobile number (no +91 / 0 prefix).
   const cleanNumber = to.replace(/^\+?91/, "").replace(/\D/g, "");
 
   const params = new URLSearchParams({
@@ -28,6 +31,7 @@ async function sendSms(to, body) {
     numbers: cleanNumber,
   });
 
+  let status = "sent";
   try {
     const res = await fetch(`https://www.fast2sms.com/dev/bulkV2?${params.toString()}`, {
       method: "GET",
@@ -36,9 +40,30 @@ async function sendSms(to, body) {
     const data = await res.json();
     if (!data.return) {
       console.error("Fast2SMS did not accept the message:", data);
+      status = "failed";
     }
   } catch (err) {
     console.error("Fast2SMS request failed:", err.message);
+    status = "failed";
+  }
+
+  await logSms(to, body, salonId, status);
+}
+
+// Best-effort logging — if this fails (e.g. migration_6 not run yet), it
+// should never block or break the actual SMS send above.
+async function logSms(to, body, salonId, status) {
+  try {
+    const { getSupabase } = require("./_supabase");
+    const supabase = getSupabase();
+    await supabase.from("sms_logs").insert({
+      salon_id: salonId || null,
+      phone: to,
+      message: body,
+      status,
+    });
+  } catch (err) {
+    console.error("sms_logs insert skipped:", err.message);
   }
 }
 

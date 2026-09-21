@@ -2,6 +2,7 @@ const crypto = require("crypto");
 const { CORS_HEADERS } = require("./_shared");
 const { getSupabase, todayDate } = require("./_supabase");
 const { sendSms } = require("./_sms");
+const { payoutToSalon } = require("./_razorpayx");
 
 // Called right after Razorpay's checkout succeeds on the browser.
 // Verifies the payment is genuine (server-side signature check — never
@@ -61,7 +62,7 @@ exports.handler = async (event) => {
 
   const { data: salon, error: salonErr } = await supabase
     .from("salons")
-    .select("id, name")
+    .select("id, name, upi_id")
     .eq("slug", salonSlug)
     .single();
   if (salonErr || !salon) {
@@ -78,6 +79,26 @@ exports.handler = async (event) => {
     return { statusCode: 404, headers: CORS_HEADERS, body: JSON.stringify({ error: "Service not found" }) };
   }
 
+  // Safety net: create-razorpay-order.js already checks this before payment,
+  // but in the rare case of a race condition, don't create a second active
+  // booking after the fact either.
+  const { data: existingActive } = await supabase
+    .from("tokens")
+    .select("id")
+    .eq("salon_id", salon.id)
+    .eq("phone", phone)
+    .in("status", ["waiting", "serving", "scheduled"])
+    .maybeSingle();
+  if (existingActive) {
+    return {
+      statusCode: 409,
+      headers: CORS_HEADERS,
+      body: JSON.stringify({
+        error: `Payment received, but you already have an active booking at this salon. Please contact the salon with payment ID ${paymentId} to sort this out.`,
+      }),
+    };
+  }
+
   if (!staffId) {
     const { data: firstStaff } = await supabase
       .from("staff")
@@ -90,36 +111,58 @@ exports.handler = async (event) => {
     if (firstStaff) staffId = firstStaff.id;
   }
 
-  const { error: insertErr } = await supabase.from("tokens").insert({
-    salon_id: salon.id,
-    day: todayDate(),
-    seq: 0,
-    name,
-    phone,
-    service_id: service.id,
-    staff_id: staffId || null,
-    status: "scheduled",
-    booking_type: "appointment",
-    scheduled_at: scheduledAt,
-    payment_status: "paid",
-    razorpay_order_id: orderId,
-    razorpay_payment_id: paymentId,
-  });
+  const { data: inserted, error: insertErr } = await supabase
+    .from("tokens")
+    .insert({
+      salon_id: salon.id,
+      day: todayDate(),
+      seq: 0,
+      name,
+      phone,
+      service_id: service.id,
+      staff_id: staffId || null,
+      status: "scheduled",
+      booking_type: "appointment",
+      scheduled_at: scheduledAt,
+      payment_status: "paid",
+      razorpay_order_id: orderId,
+      razorpay_payment_id: paymentId,
+    })
+    .select("id")
+    .single();
   if (insertErr) {
     return { statusCode: 500, headers: CORS_HEADERS, body: JSON.stringify({ error: insertErr.message }) };
   }
+
+  // Pay the salon their share immediately — this must never block or fail
+  // the booking itself; the outcome is just recorded for the admin panel.
+  const payout = await payoutToSalon({
+    upiId: salon.upi_id,
+    amountRupees: service.price,
+    salonName: salon.name,
+    referenceId: inserted.id,
+  });
+  await supabase.from("tokens").update({ payout_status: payout.status, payout_id: payout.payout_id }).eq("id", inserted.id);
 
   const when = new Date(scheduledAt).toLocaleString("en-IN", {
     day: "numeric", month: "short", hour: "numeric", minute: "2-digit", hour12: true,
   });
   await sendSms(
     phone,
-    `${salon.name}: Payment of ₹${service.price} received. Your appointment for ${service.name} on ${when} is confirmed.`
+    `${salon.name}: Payment of ₹${service.price} received. Your appointment for ${service.name} on ${when} is confirmed.`,
+    salon.id
   );
 
   return {
     statusCode: 200,
     headers: CORS_HEADERS,
-    body: JSON.stringify({ ok: true, scheduled_at: scheduledAt, service: service.name }),
+    body: JSON.stringify({
+      ok: true,
+      booking_id: inserted.id,
+      scheduled_at: scheduledAt,
+      service: service.name,
+      amount: service.price,
+      salon_name: salon.name,
+    }),
   };
 };

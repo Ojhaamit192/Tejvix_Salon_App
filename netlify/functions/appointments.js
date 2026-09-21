@@ -31,7 +31,7 @@ exports.handler = async (event) => {
 
   const { data, error } = await supabase
     .from("tokens")
-    .select("id, name, phone, scheduled_at, staff_id, payment_status, services(name), staff(name)")
+    .select("id, name, phone, scheduled_at, staff_id, payment_status, payment_ref, payout_status, created_at, services(name), staff(name)")
     .eq("salon_id", salon.id)
     .eq("status", "scheduled")
     .order("scheduled_at");
@@ -51,6 +51,9 @@ exports.handler = async (event) => {
         staff: a.staff ? a.staff.name : "",
         scheduled_at: a.scheduled_at,
         payment_status: a.payment_status,
+        payment_ref: a.payment_ref,
+        payout_status: a.payout_status,
+        created_at: a.created_at,
       })),
     }),
   };
